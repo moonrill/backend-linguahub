@@ -1,15 +1,18 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import * as Joi from 'joi';
-import { UsersModule } from './users/users.module';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import { LoggerModule } from 'nestjs-pino';
-import { HealthModule } from './health/health.module';
-import configuration from './config/configuration';
-import * as pino from 'pino';
 import { SeederModule } from '#/seeder/seeder.module';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import * as Joi from 'joi';
+import { LoggerModule } from 'nestjs-pino';
+import { join } from 'path';
+import * as pino from 'pino';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import configuration from './config/configuration';
 import { DepartmentsModule } from './departments/departments.module';
+import { HealthModule } from './health/health.module';
+import { LanguageModule } from './language/language.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -94,10 +97,15 @@ import { DepartmentsModule } from './departments/departments.module';
       },
       inject: [ConfigService],
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads/public'),
+      serveRoot: '/public',
+    }),
     SeederModule,
     UsersModule,
     HealthModule,
     DepartmentsModule,
+    LanguageModule,
   ],
 })
 export class AppModule {}
