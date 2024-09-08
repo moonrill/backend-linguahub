@@ -10,6 +10,10 @@ import configuration from './config/configuration';
 import * as pino from 'pino';
 import { SeederModule } from '#/seeder/seeder.module';
 import { DepartmentsModule } from './departments/departments.module';
+import { EventModule } from './event/event.module';
+import { Event } from './event/event.entity'; 
+
+
 
 @Module({
   imports: [
@@ -85,7 +89,7 @@ import { DepartmentsModule } from './departments/departments.module';
           username: configService.get<string>('database.username'),
           password: configService.get<string>('database.password'),
           database: configService.get<string>('database.name'),
-          entities: [],
+          entities: [Event],
           synchronize: configService.get<string>('env') === 'development',
           autoLoadEntities: true,
           logging: false,
@@ -98,6 +102,7 @@ import { DepartmentsModule } from './departments/departments.module';
     UsersModule,
     HealthModule,
     DepartmentsModule,
+    EventModule,
   ],
 })
 export class AppModule {}
