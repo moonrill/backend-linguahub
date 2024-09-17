@@ -4,12 +4,14 @@ import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateLanguageDto } from './dto/create-language.dto';
 import { UpdateLanguageDto } from './dto/update-language.dto';
 import { Language } from './entities/language.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class LanguageService {
   constructor(
     @InjectRepository(Language)
     private languageRepository: Repository<Language>,
+    private configService: ConfigService,
   ) {}
 
   async create(
@@ -20,7 +22,9 @@ export class LanguageService {
 
     entity.name = createLanguageDto.name;
     entity.code = createLanguageDto.code;
-    entity.flagImage = `${process.env.BASE_URL}/public/${flagImage.filename}`;
+    entity.flagImage = `${this.configService.get('BASE_URL')}/public/${
+      flagImage.filename
+    }`;
 
     const result = await this.languageRepository.insert(entity);
 
