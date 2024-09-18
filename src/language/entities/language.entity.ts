@@ -18,6 +18,7 @@ export class Language {
   @Column({
     type: 'char',
     length: 3,
+    unique: true,
   })
   code: string;
 
