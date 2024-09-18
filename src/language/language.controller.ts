@@ -28,7 +28,7 @@ export class LanguageController {
   @UseInterceptors(
     FileInterceptor('flag_image', {
       storage: diskStorage({
-        destination: 'uploads/public',
+        destination: 'uploads/images',
         filename: (req, file, cb) => {
           const timestamp = Date.now();
 
