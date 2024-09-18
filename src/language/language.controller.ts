@@ -19,36 +19,17 @@ import { extname } from 'path';
 import { CreateLanguageDto } from './dto/create-language.dto';
 import { UpdateLanguageDto } from './dto/update-language.dto';
 import { LanguageService } from './language.service';
+import { flagStorage } from './helpers/upload-flag';
 
 @Controller('languages')
 export class LanguageController {
   constructor(private readonly languageService: LanguageService) {}
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor('flag_image', {
-      storage: diskStorage({
-        destination: 'uploads/images',
-        filename: (req, file, cb) => {
-          const timestamp = Date.now();
-
-          cb(null, `flag-${timestamp}${extname(file.originalname)}`);
-        },
-      }),
-    }),
-  )
+  @UseInterceptors(FileInterceptor('flag_image', flagStorage))
   async create(
     @Body() createLanguageDto: CreateLanguageDto,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({ fileType: /(jpg|jpeg|png)$/ })
-        .addMaxSizeValidator({ maxSize: 3 * 1024 * 1024 })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          fileIsRequired: true,
-        }),
-    )
-    flagImage: Express.Multer.File,
+    @UploadedFile() flagImage: Express.Multer.File,
   ) {
     return {
       data: await this.languageService.create(createLanguageDto, flagImage),

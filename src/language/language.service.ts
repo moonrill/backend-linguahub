@@ -22,9 +22,9 @@ export class LanguageService {
 
     entity.name = createLanguageDto.name;
     entity.code = createLanguageDto.code;
-    entity.flagImage = `${this.configService.get('BASE_URL')}/public/${
-      flagImage.filename
-    }`;
+
+    const baseUrl = this.configService.get<string>('BASE_URL');
+    entity.flagImage = `${baseUrl}/images/flag/${flagImage.filename}`;
 
     const result = await this.languageRepository.insert(entity);
 
