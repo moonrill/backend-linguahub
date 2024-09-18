@@ -57,28 +57,9 @@ export class LanguageController {
   }
 
   @Put(':id')
-  @UseInterceptors(
-    FileInterceptor('flag_image', {
-      storage: diskStorage({
-        destination: 'uploads/public',
-        filename: (req, file, cb) => {
-          const timestamp = Date.now();
-
-          cb(null, `flag-${timestamp}${extname(file.originalname)}`);
-        },
-      }),
-    }),
-  )
+  @UseInterceptors(FileInterceptor('flag_image', flagStorage))
   async update(
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({ fileType: /(jpg|jpeg|png)$/ })
-        .addMaxSizeValidator({ maxSize: 3 * 1024 * 1024 })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          fileIsRequired: false,
-        }),
-    )
+    @UploadedFile()
     flagImage: Express.Multer.File,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateLanguageDto: UpdateLanguageDto,
