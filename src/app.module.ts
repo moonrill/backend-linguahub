@@ -13,6 +13,7 @@ import { DepartmentsModule } from './departments/departments.module';
 import { HealthModule } from './health/health.module';
 import { LanguageModule } from './language/language.module';
 import { UsersModule } from './users/users.module';
+import { RoleModule } from './role/role.module';
 
 @Module({
   imports: [
@@ -106,6 +107,7 @@ import { UsersModule } from './users/users.module';
     HealthModule,
     DepartmentsModule,
     LanguageModule,
+    RoleModule,
   ],
 })
 export class AppModule {}
