@@ -91,9 +91,9 @@ export class RoleService {
 
   async remove(name: string) {
     try {
-      await this.findByName(name);
+      const role = await this.findByName(name);
 
-      await this.roleRepository.softDelete(name);
+      await this.roleRepository.softDelete(role.id);
 
       return {
         statusCode: HttpStatus.OK,
