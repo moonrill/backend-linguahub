@@ -51,11 +51,11 @@ export class RoleService {
     }
   }
 
-  async findOne(id: string) {
+  async findByName(name: string) {
     try {
       return await this.roleRepository.findOneOrFail({
         where: {
-          id,
+          name,
         },
       });
     } catch (error) {
@@ -72,9 +72,9 @@ export class RoleService {
     }
   }
 
-  async update(id: string, updateRoleDto: UpdateRoleDto) {
+  async update(name: string, updateRoleDto: UpdateRoleDto) {
     try {
-      const existingRole = await this.findOne(id);
+      const existingRole = await this.findByName(name);
 
       const updatedRole = new Role();
       updatedRole.name = updateRoleDto.name;
@@ -82,18 +82,18 @@ export class RoleService {
       await this.roleRepository.update(existingRole.id, updatedRole);
 
       return await this.roleRepository.findOneOrFail({
-        where: { id },
+        where: { id: existingRole.id },
       });
     } catch (error) {
       throw error;
     }
   }
 
-  async remove(id: string) {
+  async remove(name: string) {
     try {
-      await this.findOne(id);
+      await this.findByName(name);
 
-      await this.roleRepository.softDelete(id);
+      await this.roleRepository.softDelete(name);
 
       return {
         statusCode: HttpStatus.OK,

@@ -39,29 +39,29 @@ export class RoleController {
     };
   }
 
-  @Get(':id')
-  async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+  @Get(':name')
+  async findOne(@Param('name') name: string) {
     return {
-      data: await this.roleService.findOne(id),
+      data: await this.roleService.findByName(name),
       statusCode: HttpStatus.OK,
-      message: 'Success get role by id',
+      message: 'Success get role by name',
     };
   }
 
-  @Put(':id')
+  @Put(':name')
   async update(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('name') name: string,
     @Body() updateRoleDto: UpdateRoleDto,
   ) {
     return {
-      data: await this.roleService.update(id, updateRoleDto),
+      data: await this.roleService.update(name, updateRoleDto),
       statusCode: HttpStatus.OK,
       message: 'Success update role',
     };
   }
 
-  @Delete(':id')
-  async remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.roleService.remove(id);
+  @Delete(':name')
+  async remove(@Param('name') name: string) {
+    return this.roleService.remove(name);
   }
 }
