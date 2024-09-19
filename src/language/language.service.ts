@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateLanguageDto } from './dto/create-language.dto';
@@ -52,14 +52,7 @@ export class LanguageService {
       return data;
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.NOT_FOUND,
-            message: 'Language not found',
-            error: 'Not Found',
-          },
-          HttpStatus.NOT_FOUND,
-        );
+        throw new NotFoundException('Language not found');
       } else {
         throw e;
       }

@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role } from './entities/role.entity';
 import { EntityNotFoundError, Repository } from 'typeorm';
@@ -60,14 +60,7 @@ export class RoleService {
       });
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.NOT_FOUND,
-            message: 'Role not found',
-            error: 'Not Found',
-          },
-          HttpStatus.NOT_FOUND,
-        );
+        throw new NotFoundException('Role not found');
       }
     }
   }
