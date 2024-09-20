@@ -1,26 +1,31 @@
+import { Role } from '#/role/entities/role.entity';
+import { Translator } from '#/translator/entities/translator.entity';
 import {
-  Entity,
   Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  DeleteDateColumn,
-  VersionColumn,
-  CreateDateColumn,
 } from 'typeorm';
+import { UserDetail } from './user-detail.entity';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  firstName: string;
+  @Column({ unique: true })
+  email: string;
 
   @Column()
-  lastName: string;
+  password: string;
 
-  @Column({ default: true })
-  isActive: boolean;
+  @Column()
+  salt: string;
 
   @CreateDateColumn({
     type: 'timestamp with time zone',
@@ -40,6 +45,16 @@ export class User {
   })
   deletedAt: Date;
 
-  @VersionColumn()
-  version: number;
+  @ManyToOne(() => Role, (role) => role.user)
+  role: Role;
+
+  @OneToOne(() => UserDetail, (userDetail) => userDetail.user, {
+    cascade: ['update'],
+  })
+  @JoinColumn({ name: 'user_detail_id' })
+  userDetail: UserDetail;
+
+  @OneToOne(() => Translator, (translator) => translator.user)
+  @JoinColumn({ name: 'translator_id' })
+  translator: Translator;
 }

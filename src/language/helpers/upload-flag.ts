@@ -1,4 +1,4 @@
-import { HttpException, UnprocessableEntityException } from '@nestjs/common';
+import { UnprocessableEntityException } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 

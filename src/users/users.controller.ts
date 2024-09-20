@@ -1,40 +1,67 @@
+import { PaginationDto } from '#/utils/pagination.dto';
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Put,
-  Param,
+  Controller,
   Delete,
-  ParseUUIDPipe,
+  Get,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  UploadedFiles,
+  UseInterceptors,
+  ValidationPipe,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { translatorDocumentStorage } from './helpers/upload-document';
+import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // TODO: Fix unresolved upload documents
   @Post()
-  async create(@Body() createUserDto: CreateUserDto) {
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'cv', maxCount: 1 },
+        { name: 'certficate', maxCount: 1 },
+      ],
+      translatorDocumentStorage,
+    ),
+  )
+  async create(
+    @UploadedFiles()
+    files: {
+      cv?: Express.Multer.File[];
+      certficate?: Express.Multer.File[];
+    },
+    @Body(new ValidationPipe()) createUserDto: CreateUserDto,
+  ) {
+    // if (!files.cv && !files.certficate) {
+    //   throw new BadRequestException('Please upload your cv and certificate');
+    // }
+
     return {
       data: await this.usersService.create(createUserDto),
       statusCode: HttpStatus.CREATED,
-      message: 'success',
+      message: 'Success create user',
     };
   }
 
   @Get()
-  async findAll() {
-    const [data, count] = await this.usersService.findAll();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    const result = await this.usersService.findAll(paginationDto);
 
     return {
-      data,
-      count,
+      ...result,
       statusCode: HttpStatus.OK,
-      message: 'success',
+      message: 'Success get all users',
     };
   }
 
@@ -43,7 +70,7 @@ export class UsersController {
     return {
       data: await this.usersService.findOne(id),
       statusCode: HttpStatus.OK,
-      message: 'success',
+      message: 'Success get user by id',
     };
   }
 
@@ -55,7 +82,7 @@ export class UsersController {
     return {
       data: await this.usersService.update(id, updateUserDto),
       statusCode: HttpStatus.OK,
-      message: 'success',
+      message: 'Success update user',
     };
   }
 
@@ -65,7 +92,7 @@ export class UsersController {
 
     return {
       statusCode: HttpStatus.OK,
-      message: 'success',
+      message: 'Success delete user',
     };
   }
 }

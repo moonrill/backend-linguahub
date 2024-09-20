@@ -1,47 +1,149 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { RoleService } from '#/role/role.service';
+import { TranslatorService } from '#/translator/translator.service';
+import { PaginationDto } from '#/utils/pagination.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { UserDetail } from './entities/user-detail.entity';
 import { User } from './entities/user.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(UserDetail)
+    private userDetailRepository: Repository<UserDetail>,
+    private roleService: RoleService,
+    private translatorService: TranslatorService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const result = await this.usersRepository.insert(createUserDto);
+    try {
+      // Check if email already exist
+      const isUserExist = await this.usersRepository.findOne({
+        where: { email: createUserDto.email },
+      });
 
-    return this.usersRepository.findOneOrFail({
-      where: {
-        id: result.identifiers[0].id,
-      },
-    });
+      if (isUserExist) {
+        throw new BadRequestException(
+          'This email is already in use. Please try a different one.',
+        );
+      }
+
+      // Just allow role to be client or translator
+      const allowedRoles = ['client', 'translator'];
+      if (!allowedRoles.includes(createUserDto.role)) {
+        throw new BadRequestException('Invalid role');
+      }
+
+      // Check if role exist
+      const role = await this.roleService.findByName(createUserDto.role);
+
+      // Create user detail
+      const newUserDetail = new UserDetail();
+      newUserDetail.fullName = createUserDto.fullName;
+      newUserDetail.gender = createUserDto.gender;
+      newUserDetail.dateOfBirth = createUserDto.dateOfBirth;
+      newUserDetail.phoneNumber = createUserDto.phoneNumber;
+      newUserDetail.province = createUserDto.province;
+      newUserDetail.city = createUserDto.city;
+      newUserDetail.district = createUserDto.district;
+      newUserDetail.subDistrict = createUserDto.subDistrict;
+      newUserDetail.street = createUserDto.street;
+
+      const insertUserDetail = await this.userDetailRepository.insert(
+        newUserDetail,
+      );
+
+      // Generate salt
+      const salt = await bcrypt.genSalt();
+      const hashPassword = await bcrypt.hash(createUserDto.password, salt);
+
+      const newUser = new User();
+      newUser.email = createUserDto.email;
+      newUser.userDetail = insertUserDetail.identifiers[0].id;
+      newUser.role = role;
+      newUser.salt = salt;
+      newUser.password = hashPassword;
+
+      const insertUser = await this.usersRepository.insert(newUser);
+
+      // Check if role is translator
+      if (createUserDto.role === 'translator') {
+        const translatorData = {
+          yearsOfExperience: createUserDto.yearsOfExperience,
+          portfolioLink: createUserDto.portfolioLink,
+          bank: createUserDto.bank,
+          bankAccountNumber: createUserDto.bankAccountNumber,
+          userId: insertUser.identifiers[0].id,
+        };
+
+        await this.translatorService.create(translatorData);
+      }
+
+      return await this.usersRepository.findOneOrFail({
+        where: {
+          id: insertUser.identifiers[0].id,
+        },
+        relations: {
+          userDetail: true,
+          role: true,
+          translator: true,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 
-  findAll() {
-    return this.usersRepository.findAndCount();
+  async findAll(paginationDto: PaginationDto) {
+    const { page, limit } = paginationDto;
+    const skip = (page - 1) * limit;
+    const [data, total] = await this.usersRepository.findAndCount({
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      total,
+      page,
+      totalPages,
+      limit,
+    };
   }
 
   async findOne(id: string) {
     try {
-      return await this.usersRepository.findOneOrFail({
+      const user = await this.usersRepository.findOneOrFail({
         where: {
           id,
         },
+        relations: {
+          userDetail: true,
+          role: true,
+        },
       });
+
+      if (user.role.name === 'translator') {
+        const translator = await this.translatorService.findByUserId(id);
+        user.translator = translator;
+      }
+
+      return user;
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.NOT_FOUND,
-            error: 'Data not found',
-          },
-          HttpStatus.NOT_FOUND,
-        );
+        throw new NotFoundException('User not found');
       } else {
         throw e;
       }
@@ -50,55 +152,47 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     try {
-      await this.usersRepository.findOneOrFail({
-        where: {
-          id,
-        },
+      const user = await this.findOne(id);
+
+      const existEmail = await this.usersRepository.findOne({
+        where: { email: updateUserDto.email },
       });
-    } catch (e) {
-      if (e instanceof EntityNotFoundError) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.NOT_FOUND,
-            error: 'Data not found',
-          },
-          HttpStatus.NOT_FOUND,
+
+      if (existEmail && existEmail.id !== id) {
+        throw new BadRequestException(
+          'This email is already in use. Please try a different one.',
         );
-      } else {
-        throw e;
       }
+
+      const newUser = new User();
+      newUser.email = updateUserDto.email;
+      await this.usersRepository.update(id, newUser);
+
+      const newUserDetail = new UserDetail();
+      newUserDetail.fullName = updateUserDto.fullName;
+      newUserDetail.gender = updateUserDto.gender;
+      newUserDetail.dateOfBirth = updateUserDto.dateOfBirth;
+      newUserDetail.phoneNumber = updateUserDto.phoneNumber;
+      newUserDetail.province = updateUserDto.province;
+      newUserDetail.city = updateUserDto.city;
+      newUserDetail.district = updateUserDto.district;
+      newUserDetail.subDistrict = updateUserDto.subDistrict;
+      newUserDetail.street = updateUserDto.street;
+
+      await this.userDetailRepository.update(user.userDetail.id, newUserDetail);
+
+      return await this.findOne(id);
+    } catch (error) {
+      throw error;
     }
-
-    await this.usersRepository.update(id, updateUserDto);
-
-    return this.usersRepository.findOneOrFail({
-      where: {
-        id,
-      },
-    });
   }
 
   async remove(id: string) {
     try {
-      await this.usersRepository.findOneOrFail({
-        where: {
-          id,
-        },
-      });
-    } catch (e) {
-      if (e instanceof EntityNotFoundError) {
-        throw new HttpException(
-          {
-            statusCode: HttpStatus.NOT_FOUND,
-            error: 'Data not found',
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      } else {
-        throw e;
-      }
+      await this.findOne(id);
+      await this.usersRepository.softDelete(id);
+    } catch (error) {
+      throw error;
     }
-
-    await this.usersRepository.delete(id);
   }
 }
