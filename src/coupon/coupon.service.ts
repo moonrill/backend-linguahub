@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Coupon } from './coupon.entity';
 import { CreateCouponDto } from './dto/create-coupon.dto';
+import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { Event } from 'src/event/event.entity';
 
 @Injectable()
@@ -30,6 +31,22 @@ export class CouponService {
 
   async remove(id: string): Promise<void> {
     await this.couponRepository.delete(id);
+  }
+
+  async update(id: string, updateCouponDto: UpdateCouponDto): Promise<Coupon> {
+    console.log(updateCouponDto);  // Tambahkan log untuk melihat data yang dikirimkan
+    const coupon = await this.couponRepository.findOne({ where: { id } });
+    if (!coupon) {
+      throw new NotFoundException(`Coupon with ID ${id} not found`);
+    }
+  
+    const event = await this.eventRepository.findOneBy({ id: updateCouponDto.eventId });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${updateCouponDto.eventId} not found`);
+    }
+  
+    this.couponRepository.merge(coupon, updateCouponDto);
+    return this.couponRepository.save(coupon);
   }
 }
   
