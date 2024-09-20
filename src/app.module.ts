@@ -9,12 +9,14 @@ import { join } from 'path';
 import * as pino from 'pino';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import configuration from './config/configuration';
+import { CouponModule } from './coupon/coupon.module';
 import { DepartmentsModule } from './departments/departments.module';
+import { EventModule } from './event/event.module';
 import { HealthModule } from './health/health.module';
 import { LanguageModule } from './language/language.module';
-import { UsersModule } from './users/users.module';
 import { RoleModule } from './role/role.module';
 import { TranslatorModule } from './translator/translator.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -110,6 +112,8 @@ import { TranslatorModule } from './translator/translator.module';
     LanguageModule,
     RoleModule,
     TranslatorModule,
+    EventModule,
+    CouponModule,
   ],
 })
 export class AppModule {}

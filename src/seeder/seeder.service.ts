@@ -1,12 +1,12 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { EntityTarget } from 'typeorm/common/EntityTarget';
-import { DataSource } from 'typeorm';
-import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
-import { ConfigService } from '@nestjs/config';
-import { Role } from '#/role/entities/role.entity';
-import { roleMasterData } from './data/role';
 import { Language } from '#/language/entities/language.entity';
+import { Role } from '#/role/entities/role.entity';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
+import { EntityTarget } from 'typeorm/common/EntityTarget';
+import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { languageMasterData } from './data/language';
+import { roleMasterData } from './data/role';
 // import { User } from '#/users/entities/user.entity';
 // import { userMasterData } from '#/seeder/data/user';
 
