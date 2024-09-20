@@ -1,7 +1,18 @@
+import { IsString, IsDateString } from 'class-validator';
+
 export class CreateEventDto {
+  @IsString()
   name: string;
+
+  @IsString()
   description: string;
-  start_date: Date;
-  end_date: Date;
+
+  @IsDateString()
+  start_date: string;
+
+  @IsDateString()
+  end_date: string;
+
+  @IsString()
   poster: string;
 }

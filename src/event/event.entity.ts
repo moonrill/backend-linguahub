@@ -1,28 +1,23 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Coupon } from 'src/coupon/coupon.entity';
 
 @Entity()
 export class Event {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ length: 255 })
+  @Column({ nullable: false, default: 'Untitled Event' })
   name: string;
-
-  @Column('text')
+    
+  @Column({ nullable: true })
   description: string;
+  
+  @Column({ nullable: true })
+  start_date: string;
 
-  @Column('date')
-  start_date: Date;
+  @Column({ nullable: true })
+  end_date: string;
 
-  @Column('date')
-  end_date: Date;
-
-  @Column('text')
+  @Column({ nullable: true })
   poster: string;
-
-  @CreateDateColumn()
-  created_at: Date;
-
-  @UpdateDateColumn()
-  updated_at: Date;
 }

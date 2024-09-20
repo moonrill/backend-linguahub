@@ -1,8 +1,17 @@
+import { IsNotEmpty, IsNumber } from 'class-validator';
+
 export class CreateCouponDto {
+  @IsNotEmpty() 
   name: string;
-  description: string;
+  @IsNotEmpty() 
+  description: string; 
+  @IsNotEmpty() 
   status: string;
+  @IsNotEmpty() 
   expired_at: Date;
+  @IsNotEmpty() 
+  @IsNumber() 
   discount_percentage: number;
-  eventId: string; // Foreign key
+  @IsNotEmpty()
+  eventId: string;
 }

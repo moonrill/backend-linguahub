@@ -1,14 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Event } from './event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
+import { Event } from './event.entity';
 
 @Injectable()
 export class EventService {
   constructor(
     @InjectRepository(Event)
-    private eventRepository: Repository<Event>,
+    private readonly eventRepository: Repository<Event>,
   ) {}
 
   async create(createEventDto: CreateEventDto): Promise<Event> {
@@ -20,11 +21,31 @@ export class EventService {
     return this.eventRepository.find();
   }
 
-  findOne(id: string): Promise<Event> {
-    return this.eventRepository.findOneBy({ id });
+  async findOne(id: string): Promise<Event> {
+    const event = await this.eventRepository.findOne({ where: { id } });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
+    return event;
+  }
+
+  async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {
+    const event = await this.eventRepository.preload({
+      id: id,
+      ...updateEventDto,
+    });
+
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
+
+    return this.eventRepository.save(event);
   }
 
   async remove(id: string): Promise<void> {
-    await this.eventRepository.delete(id);
+    const result = await this.eventRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
   }
 }
