@@ -1,4 +1,6 @@
+import { PaginationDto } from '#/utils/pagination.dto';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -26,8 +28,13 @@ export class LanguageController {
   @UseInterceptors(FileInterceptor('flag_image', flagStorage))
   async create(
     @Body() createLanguageDto: CreateLanguageDto,
-    @UploadedFile() flagImage: Express.Multer.File,
+    @UploadedFile()
+    flagImage: Express.Multer.File,
   ) {
+    if (!flagImage) {
+      throw new BadRequestException('Flag image is required');
+    }
+
     return {
       data: await this.languageService.create(createLanguageDto, flagImage),
       statusCode: HttpStatus.CREATED,
@@ -36,9 +43,11 @@ export class LanguageController {
   }
 
   @Get()
-  async findAll(@Query('order') order: string) {
+  async findAll(@Query() paginationDto: PaginationDto) {
+    const result = await this.languageService.findAll(paginationDto);
+
     return {
-      data: await this.languageService.findAll(order),
+      ...result,
       statusCode: HttpStatus.OK,
       message: 'Success get all languages',
     };

@@ -1,10 +1,11 @@
+import { PaginationDto } from '#/utils/pagination.dto';
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateLanguageDto } from './dto/create-language.dto';
 import { UpdateLanguageDto } from './dto/update-language.dto';
 import { Language } from './entities/language.entity';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class LanguageService {
@@ -35,12 +36,26 @@ export class LanguageService {
     });
   }
 
-  async findAll(order: string) {
-    const data = await this.languageRepository.findAndCount({
-      order: { name: order as 'ASC' | 'DESC' },
-    });
+  async findAll(paginationDto: PaginationDto) {
+    try {
+      const { page, limit } = paginationDto;
+      const [data, total] = await this.languageRepository.findAndCount({
+        skip: (page - 1) * limit,
+        take: limit,
+      });
 
-    return data;
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data,
+        total,
+        page,
+        totalPages,
+        limit,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findOne(id: string) {

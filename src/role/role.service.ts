@@ -1,10 +1,10 @@
+import { PaginationDto } from '#/utils/pagination.dto';
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Role } from './entities/role.entity';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role';
-import { PaginationDto } from '#/utils/pagination.dto';
+import { Role } from './entities/role.entity';
 
 @Injectable()
 export class RoleService {
@@ -19,6 +19,7 @@ export class RoleService {
       newRole.name = createRoleDto.name;
 
       const insertResult = await this.roleRepository.insert(newRole);
+
       return await this.roleRepository.findOneOrFail({
         where: {
           id: insertResult.identifiers[0].id,
@@ -32,13 +33,13 @@ export class RoleService {
   async findAll(paginationDto: PaginationDto) {
     try {
       const { page, limit } = paginationDto;
-      const skip = (page - 1) * limit;
       const [data, total] = await this.roleRepository.findAndCount({
-        skip,
+        skip: (page - 1) * limit,
         take: limit,
       });
 
       const totalPages = Math.ceil(total / limit);
+
       return {
         data,
         total,

@@ -1,4 +1,4 @@
-import { UnprocessableEntityException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
@@ -16,10 +16,7 @@ export const flagStorage = {
 
   fileFilter: (req, file, cb) => {
     if (!file.mimetype.match(/\/(jpg|jpeg|png|svg)$/)) {
-      cb(
-        new UnprocessableEntityException('Only image files are allowed!'),
-        false,
-      );
+      cb(new BadRequestException('Only image files are allowed!'), false);
     }
 
     cb(null, true);
