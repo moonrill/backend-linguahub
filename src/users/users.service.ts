@@ -14,6 +14,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDetail } from './entities/user-detail.entity';
 import { User } from './entities/user.entity';
 
+export type TranslatorDocumentsType = {
+  cv?: Express.Multer.File[];
+  certificate?: Express.Multer.File[];
+};
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -25,7 +30,7 @@ export class UsersService {
     private translatorService: TranslatorService,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, files: TranslatorDocumentsType) {
     try {
       // Check if email already exist
       const isUserExist = await this.usersRepository.findOne({
@@ -76,6 +81,7 @@ export class UsersService {
 
       const insertUser = await this.usersRepository.insert(newUser);
 
+      // TODO: add language and specialization for translator
       // Check if role is translator
       if (createUserDto.role === 'translator') {
         const translatorData = {
@@ -84,6 +90,8 @@ export class UsersService {
           bank: createUserDto.bank,
           bankAccountNumber: createUserDto.bankAccountNumber,
           userId: insertUser.identifiers[0].id,
+          cv: files.cv[0].filename,
+          certificate: files.certificate[0].filename,
         };
 
         await this.translatorService.create(translatorData);

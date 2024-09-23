@@ -1,5 +1,6 @@
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -24,13 +25,12 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // TODO: Fix unresolved upload documents
   @Post()
   @UseInterceptors(
     FileFieldsInterceptor(
       [
         { name: 'cv', maxCount: 1 },
-        { name: 'certficate', maxCount: 1 },
+        { name: 'certificate', maxCount: 1 },
       ],
       translatorDocumentStorage,
     ),
@@ -39,16 +39,18 @@ export class UsersController {
     @UploadedFiles()
     files: {
       cv?: Express.Multer.File[];
-      certficate?: Express.Multer.File[];
+      certificate?: Express.Multer.File[];
     },
     @Body(new ValidationPipe()) createUserDto: CreateUserDto,
   ) {
-    // if (!files.cv && !files.certficate) {
-    //   throw new BadRequestException('Please upload your cv and certificate');
-    // }
+    if (createUserDto.role === 'translator') {
+      if (!files.cv || !files.certificate) {
+        throw new BadRequestException('Please upload your cv and certificate');
+      }
+    }
 
     return {
-      data: await this.usersService.create(createUserDto),
+      data: await this.usersService.create(createUserDto, files),
       statusCode: HttpStatus.CREATED,
       message: 'Success create user',
     };

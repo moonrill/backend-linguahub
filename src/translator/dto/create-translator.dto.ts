@@ -4,8 +4,8 @@ export class CreateTranslatorDto {
   portfolioLink: string;
   bank: string;
   bankAccountNumber: string;
+  cv: string;
+  certificate: string;
   // languages: string[];
   // specializations: string[];
-  // cv: string;
-  // certficate: string;
 }

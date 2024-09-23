@@ -1,5 +1,6 @@
 import { User } from '#/users/entities/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateTranslatorDto } from './dto/create-translator.dto';
@@ -12,6 +13,7 @@ export class TranslatorService {
     private translatorRepository: Repository<Translator>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private configService: ConfigService,
   ) {}
 
   // TODO: Add language and specialization
@@ -24,6 +26,11 @@ export class TranslatorService {
       newTranslator.portfolioLink = createTranslatorDto.portfolioLink;
       newTranslator.bank = createTranslatorDto.bank;
       newTranslator.bankAccountNumber = createTranslatorDto.bankAccountNumber;
+
+      // Handle Upload Documents
+      const baseUrl = this.configService.get('BASE_URL');
+      newTranslator.cv = `${baseUrl}/uploads/documents/cv/${createTranslatorDto.cv}`;
+      newTranslator.certificate = `${baseUrl}/uploads/documents/certificate/${createTranslatorDto.certificate}`;
 
       const user = await this.userRepository.findOneOrFail({
         where: {

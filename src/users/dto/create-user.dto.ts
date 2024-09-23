@@ -71,6 +71,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   bankAccountNumber?: string;
 
+  // TODO: Handle language and specialization selection
   // @IsArray()
   // @IsString({ each: true })
   // @ValidateIf((o) => o.role === 'translator')
@@ -81,13 +82,4 @@ export class CreateUserDto {
   // @IsString({ each: true })
   // @ValidateIf((o) => o.role === 'translator')
   // @IsNotEmpty({ message: 'Specialities are required for translators' })
-  // speciality?: string[];
-
-  // @ValidateIf((o) => o.role === 'translator')
-  // @IsNotEmpty({ message: 'CV file is required for translators' })
-  // cvFile?: Express.Multer.File;
-
-  // @IsOptional()
-  // @ValidateIf((o) => o.role === 'translator')
-  // additionalDocuments?: Express.Multer.File[];\
 }
