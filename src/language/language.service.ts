@@ -1,5 +1,10 @@
 import { PaginationDto } from '#/utils/pagination.dto';
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, Repository } from 'typeorm';
@@ -19,6 +24,16 @@ export class LanguageService {
     createLanguageDto: CreateLanguageDto,
     flagImage: Express.Multer.File,
   ) {
+    const existCode = await this.languageRepository.findOne({
+      where: {
+        code: createLanguageDto.code,
+      },
+    });
+
+    if (existCode) {
+      throw new BadRequestException('Language code already exist');
+    }
+
     const entity = new Language();
 
     entity.name = createLanguageDto.name;
@@ -91,7 +106,8 @@ export class LanguageService {
 
       // Check if new flag image is uploaded
       if (flagImage) {
-        langEntity.flagImage = `${process.env.BASE_URL}/public/${flagImage.filename}`;
+        const baseUrl = this.configService.get<string>('BASE_URL');
+        langEntity.flagImage = `${baseUrl}/images/flag/${flagImage.filename}`;
       } else {
         langEntity.flagImage = oldData.flagImage;
       }

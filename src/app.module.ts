@@ -8,13 +8,14 @@ import { LoggerModule } from 'nestjs-pino';
 import { join } from 'path';
 import * as pino from 'pino';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { AuthModule } from './auth/auth.module';
 import configuration from './config/configuration';
 import { CouponModule } from './coupon/coupon.module';
-import { DepartmentsModule } from './departments/departments.module';
 import { EventModule } from './event/event.module';
 import { HealthModule } from './health/health.module';
 import { LanguageModule } from './language/language.module';
 import { RoleModule } from './role/role.module';
+import { SpecializationModule } from './specialization/specialization.module';
 import { TranslatorModule } from './translator/translator.module';
 import { UsersModule } from './users/users.module';
 
@@ -108,12 +109,13 @@ import { UsersModule } from './users/users.module';
     SeederModule,
     UsersModule,
     HealthModule,
-    DepartmentsModule,
     LanguageModule,
     RoleModule,
     TranslatorModule,
     EventModule,
     CouponModule,
+    SpecializationModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

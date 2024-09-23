@@ -1,4 +1,5 @@
 import { PaginationDto } from '#/utils/pagination.dto';
+import { uploadImage } from '#/utils/upload-image';
 import {
   BadRequestException,
   Body,
@@ -17,7 +18,6 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateLanguageDto } from './dto/create-language.dto';
 import { UpdateLanguageDto } from './dto/update-language.dto';
-import { flagStorage } from './helpers/upload-flag';
 import { LanguageService } from './language.service';
 
 @Controller('languages')
@@ -25,7 +25,7 @@ export class LanguageController {
   constructor(private readonly languageService: LanguageService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('flag_image', flagStorage))
+  @UseInterceptors(FileInterceptor('flag_image', uploadImage('flag')))
   async create(
     @Body() createLanguageDto: CreateLanguageDto,
     @UploadedFile()
@@ -63,7 +63,7 @@ export class LanguageController {
   }
 
   @Put(':id')
-  @UseInterceptors(FileInterceptor('flag_image', flagStorage))
+  @UseInterceptors(FileInterceptor('flag_image', uploadImage('flag')))
   async update(
     @UploadedFile()
     flagImage: Express.Multer.File,
