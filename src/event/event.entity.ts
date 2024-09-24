@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Coupon } from 'src/coupon/coupon.entity';
 
 @Entity()
@@ -27,4 +27,6 @@ export class Event {
   @UpdateDateColumn()
   updated_at: Date;
 
+  @OneToMany(() => Coupon, coupon => coupon.event)
+  coupons: Coupon[]; // Menambahkan properti coupons
 }

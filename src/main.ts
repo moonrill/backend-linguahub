@@ -12,7 +12,9 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.useStaticAssets(join(__dirname, '..', '..', 'poster')); 
+  app.useStaticAssets(join(__dirname, '..', 'src', 'event', 'poster'), {
+    prefix: '/poster/', 
+  });
 
 
 

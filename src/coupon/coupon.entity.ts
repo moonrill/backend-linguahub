@@ -3,10 +3,12 @@ import { Event } from 'src/event/event.entity';
 
 @Entity()
 export class Coupon {
+
+
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Event, event => event.id)
+  @ManyToOne(() => Event, event => event.coupons, { onDelete: 'CASCADE' })
   event: Event;
 
   @Column({ length: 255 })

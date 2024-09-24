@@ -7,10 +7,18 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as path from 'path'; 
+import { ConfigService } from '@nestjs/config'; 
 
 @Controller('event')
 export class EventController {
-  constructor(private readonly eventService: EventService) {}
+  private readonly basePosterUrl: string;
+
+  constructor(
+    private readonly eventService: EventService,
+    private readonly configService: ConfigService,
+  ) {
+    this.basePosterUrl = this.configService.get<string>('POSTER_BASE_URL', 'http://localhost:3222/poster/');
+  }
 
   @Post()
   @UseInterceptors(FileInterceptor('poster', {
@@ -24,9 +32,11 @@ export class EventController {
   }))
   async create(@UploadedFile() file: Express.Multer.File, @Body() createEventDto: CreateEventDto): Promise<Event> {
     if (file) {
-      createEventDto.poster = file.filename; // Save the filename of the poster
+      createEventDto.poster = file.filename; 
     }
-    return this.eventService.create(createEventDto);
+    const event = await this.eventService.create(createEventDto);
+    event.poster = `${this.basePosterUrl}${event.poster}`;
+    return event;
   }
 
   @Put(':id')
@@ -39,38 +49,34 @@ export class EventController {
       },
     }),
   }))
-  async updatePut(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Body() updateEventDto: UpdateEventDto): Promise<Event> {
+  async update(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Body() updateEventDto: UpdateEventDto): Promise<Event> {
     if (file) {
-      updateEventDto.poster = file.filename; // Save the filename of the poster if new one is uploaded
+      updateEventDto.poster = file.filename;
     }
-    return this.eventService.update(id, updateEventDto);
-  }
+    const event = await this.eventService.update(id, updateEventDto);
+    
+    if (file) {
+      event.poster = `${this.basePosterUrl}${event.poster}`;
+    } else {
+      const existingEvent = await this.eventService.findOne(id);
+      event.poster = `${this.basePosterUrl}${existingEvent.poster}`; 
+    }
 
-  @Patch(':id')
-  @UseInterceptors(FileInterceptor('poster', {
-    storage: diskStorage({
-      destination: path.join(__dirname, '../../src/event/poster'),
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('');
-        cb(null, `${randomName}${extname(file.originalname)}`);
-      },
-    }),
-  }))
-  async updatePatch(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Body() updateEventDto: UpdateEventDto): Promise<Event> {
-    if (file) {
-      updateEventDto.poster = file.filename; // Update poster filename if a new file is uploaded
-    }
-    return this.eventService.update(id, updateEventDto);
+    return event;
   }
 
   @Get()
-  findAll(): Promise<Event[]> {
-    return this.eventService.findAll();
+  async findAll(): Promise<Event[]> {
+    const events = await this.eventService.findAll();
+    events.forEach(event => event.poster = `${this.basePosterUrl}${event.poster}`);
+    return events;
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Event> {
-    return this.eventService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<Event> {
+    const event = await this.eventService.findOne(id);
+    event.poster = `${this.basePosterUrl}${event.poster}`;
+    return event;
   }
 
   @Delete(':id')
