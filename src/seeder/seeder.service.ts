@@ -1,5 +1,6 @@
 import { Language } from '#/language/entities/language.entity';
 import { Role } from '#/role/entities/role.entity';
+import { Specialization } from '#/specialization/entities/specialization.entity';
 import { User } from '#/users/entities/user.entity';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -9,6 +10,7 @@ import { EntityTarget } from 'typeorm/common/EntityTarget';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
 import { languageMasterData } from './data/language';
 import { roleMasterData } from './data/role';
+import { specializationMasterData } from './data/specialization';
 import { userMasterData } from './data/user';
 
 @Injectable()
@@ -76,6 +78,7 @@ export class SeederService implements OnApplicationBootstrap {
   async seeder() {
     await this.insertIfNotExist(Role, roleMasterData);
     await this.insertIfNotExist(Language, languageMasterData);
+    await this.insertIfNotExist(Specialization, specializationMasterData);
     await this.seedUser();
   }
 
