@@ -56,7 +56,7 @@ export class LanguageController {
   @Get(':id')
   async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return {
-      data: await this.languageService.findOne(id),
+      data: await this.languageService.findById(id),
       statusCode: HttpStatus.OK,
       message: 'Success get language by id',
     };

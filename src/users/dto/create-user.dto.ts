@@ -1,17 +1,19 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMinSize,
+  IsArray,
   IsDate,
   IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsUUID,
   MaxLength,
   ValidateIf,
 } from 'class-validator';
 import { Gender } from '../entities/user-detail.entity';
 
 export class CreateUserDto {
-  @IsEnum(['client', 'translator'])
   @IsNotEmpty()
   role: string;
 
@@ -71,15 +73,21 @@ export class CreateUserDto {
   @IsNotEmpty()
   bankAccountNumber?: string;
 
-  // TODO: Handle language and specialization selection
-  // @IsArray()
-  // @IsString({ each: true })
-  // @ValidateIf((o) => o.role === 'translator')
-  // @IsNotEmpty({ message: 'Languages are required for translators' })
-  // languages?: string[];
+  @IsArray()
+  @IsUUID('4', {
+    each: true,
+    message: 'Each language must be a valid UUID',
+  })
+  @ValidateIf((o) => o.role === 'translator')
+  @ArrayMinSize(2, { message: 'Must have at least 2 languages' })
+  languages?: string[];
 
-  // @IsArray()
-  // @IsString({ each: true })
-  // @ValidateIf((o) => o.role === 'translator')
-  // @IsNotEmpty({ message: 'Specialities are required for translators' })
+  @IsArray()
+  @IsUUID('4', {
+    each: true,
+    message: 'Each specialization must be a valid UUID',
+  })
+  @ValidateIf((o) => o.role === 'translator')
+  @ArrayMinSize(1, { message: 'Must have at least 1 specialization' })
+  specializations?: string[];
 }

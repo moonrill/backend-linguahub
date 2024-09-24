@@ -49,12 +49,15 @@ export class User {
   role: Role;
 
   @OneToOne(() => UserDetail, (userDetail) => userDetail.user, {
-    cascade: ['update'],
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_detail_id' })
   userDetail: UserDetail;
 
-  @OneToOne(() => Translator, (translator) => translator.user)
+  @OneToOne(() => Translator, (translator) => translator.user, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'translator_id' })
   translator: Translator;
 }

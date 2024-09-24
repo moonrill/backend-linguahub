@@ -7,14 +7,7 @@ import { extname, join } from 'path';
 export const translatorDocumentStorage: MulterOptions = {
   storage: diskStorage({
     destination: (req, file, cb) => {
-      let uploadPath = join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'uploads',
-        'documents',
-      );
+      let uploadPath = join(__dirname, '..', '..', 'uploads', 'documents');
 
       if (file.fieldname === 'cv') {
         uploadPath = join(uploadPath, 'cv');

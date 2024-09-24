@@ -1,9 +1,13 @@
+import { LanguageService } from '#/language/language.service';
+import { SpecializationService } from '#/specialization/specialization.service';
 import { User } from '#/users/entities/user.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { EntityManager, EntityNotFoundError, Repository } from 'typeorm';
 import { CreateTranslatorDto } from './dto/create-translator.dto';
+import { TranslatorLanguages } from './entities/translator-languages.entity';
+import { TranslatorSpecializations } from './entities/translator-specializations.entity';
 import { Translator, TranslatorStatus } from './entities/translator.entity';
 
 @Injectable()
@@ -11,51 +15,135 @@ export class TranslatorService {
   constructor(
     @InjectRepository(Translator)
     private translatorRepository: Repository<Translator>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
     private configService: ConfigService,
+    private languageService: LanguageService,
+    private specializationService: SpecializationService,
   ) {}
 
-  // TODO: Add language and specialization
-  async create(createTranslatorDto: CreateTranslatorDto) {
+  private async getUser(
+    userId: string,
+    transactionalEntityManager: EntityManager,
+  ): Promise<User> {
+    return transactionalEntityManager.findOneOrFail(User, {
+      where: { id: userId },
+    });
+  }
+
+  async create(
+    createTranslatorDto: CreateTranslatorDto,
+    transactionEntityManager: EntityManager,
+  ) {
     try {
-      const newTranslator = new Translator();
-
-      newTranslator.status = TranslatorStatus.INACTIVE;
-      newTranslator.yearsOfExperience = createTranslatorDto.yearsOfExperience;
-      newTranslator.portfolioLink = createTranslatorDto.portfolioLink;
-      newTranslator.bank = createTranslatorDto.bank;
-      newTranslator.bankAccountNumber = createTranslatorDto.bankAccountNumber;
-
-      // Handle Upload Documents
-      const baseUrl = this.configService.get('BASE_URL');
-      newTranslator.cv = `${baseUrl}/uploads/documents/cv/${createTranslatorDto.cv}`;
-      newTranslator.certificate = `${baseUrl}/uploads/documents/certificate/${createTranslatorDto.certificate}`;
-
-      const user = await this.userRepository.findOneOrFail({
-        where: {
-          id: createTranslatorDto.userId,
-        },
-      });
-
-      newTranslator.user = user;
-
-      const insertTranslator = await this.translatorRepository.insert(
-        newTranslator,
+      const user = await this.getUser(
+        createTranslatorDto.userId,
+        transactionEntityManager,
+      );
+      const newTranslator = await this.createTranslator(
+        createTranslatorDto,
+        user,
+        transactionEntityManager,
       );
 
-      user.translator = insertTranslator.identifiers[0].id;
+      await this.saveLanguages(
+        createTranslatorDto.languages,
+        newTranslator,
+        transactionEntityManager,
+      );
+      await this.saveSpecializations(
+        createTranslatorDto.specializations,
+        newTranslator,
+        transactionEntityManager,
+      );
 
-      await this.userRepository.update(user.id, user);
-
-      return await this.translatorRepository.findOneOrFail({
-        where: {
-          id: insertTranslator.identifiers[0].id,
-        },
-      });
+      await this.updateUserWithTranslator(
+        user,
+        newTranslator,
+        transactionEntityManager,
+      );
     } catch (error) {
       throw error;
     }
+  }
+
+  private async createTranslator(
+    createTranslatorDto: CreateTranslatorDto,
+    user: User,
+    transactionalEntityManager: EntityManager,
+  ): Promise<Translator> {
+    const newTranslator = new Translator();
+    Object.assign(newTranslator, {
+      status: TranslatorStatus.PENDING,
+      yearsOfExperience: createTranslatorDto.yearsOfExperience,
+      portfolioLink: createTranslatorDto.portfolioLink,
+      bank: createTranslatorDto.bank,
+      bankAccountNumber: createTranslatorDto.bankAccountNumber,
+      cv: this.getDocumentUrl('cv', createTranslatorDto.cv),
+      certificate: this.getDocumentUrl(
+        'certificate',
+        createTranslatorDto.certificate,
+      ),
+      user: user,
+    });
+
+    return transactionalEntityManager.save(Translator, newTranslator);
+  }
+
+  private getDocumentUrl(type: 'cv' | 'certificate', filename: string): string {
+    const baseUrl = this.configService.get('BASE_URL');
+    return `${baseUrl}/uploads/documents/${type}/${filename}`;
+  }
+
+  private async saveLanguages(
+    languageIds: string[],
+    translator: Translator,
+    transactionalEntityManager: EntityManager,
+  ): Promise<void> {
+    const translatorLanguages = await Promise.all(
+      languageIds.map(async (languageId) => {
+        const language = await this.languageService.findById(languageId);
+        const translatorLanguage = new TranslatorLanguages();
+        translatorLanguage.translator = translator;
+        translatorLanguage.language = language;
+        return translatorLanguage;
+      }),
+    );
+
+    await transactionalEntityManager.save(
+      TranslatorLanguages,
+      translatorLanguages,
+    );
+  }
+
+  private async saveSpecializations(
+    specializationIds: string[],
+    translator: Translator,
+    transactionalEntityManager: EntityManager,
+  ): Promise<void> {
+    const translatorSpecializations = await Promise.all(
+      specializationIds.map(async (specializationId) => {
+        const specialization = await this.specializationService.findById(
+          specializationId,
+        );
+        const translatorSpecialization = new TranslatorSpecializations();
+        translatorSpecialization.translator = translator;
+        translatorSpecialization.specialization = specialization;
+        return translatorSpecialization;
+      }),
+    );
+
+    await transactionalEntityManager.save(
+      TranslatorSpecializations,
+      translatorSpecializations,
+    );
+  }
+
+  private async updateUserWithTranslator(
+    user: User,
+    translator: Translator,
+    transactionalEntityManager: EntityManager,
+  ): Promise<void> {
+    user.translator = translator;
+    await transactionalEntityManager.save(User, user);
   }
 
   async findByUserId(userId: string) {

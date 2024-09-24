@@ -1,14 +1,21 @@
+import { Role } from '#/role/entities/role.entity';
 import { RoleService } from '#/role/role.service';
 import { TranslatorService } from '#/translator/translator.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  EntityNotFoundError,
+  Repository,
+} from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDetail } from './entities/user-detail.entity';
@@ -28,88 +35,111 @@ export class UsersService {
     private userDetailRepository: Repository<UserDetail>,
     private roleService: RoleService,
     private translatorService: TranslatorService,
+    private dataSource: DataSource,
   ) {}
 
-  async create(createUserDto: CreateUserDto, files: TranslatorDocumentsType) {
+  async create(
+    createUserDto: CreateUserDto,
+    documents: TranslatorDocumentsType,
+  ) {
     try {
-      // Check if email already exist
-      const isUserExist = await this.usersRepository.findOne({
-        where: { email: createUserDto.email },
-      });
+      return this.dataSource.transaction(async (transactionEntityManager) => {
+        await this.checkIfUserExists(createUserDto.email);
 
-      if (isUserExist) {
-        throw new BadRequestException(
-          'This email is already in use. Please try a different one.',
+        this.validateRole(createUserDto.role);
+
+        const role = await this.roleService.findByName(createUserDto.role);
+        const userDetail = await this.createUserDetail(
+          createUserDto,
+          transactionEntityManager,
         );
-      }
+        const user = await this.createUser(
+          createUserDto,
+          role,
+          userDetail,
+          transactionEntityManager,
+        );
 
-      // Just allow role to be client or translator
-      const allowedRoles = ['client', 'translator'];
-      if (!allowedRoles.includes(createUserDto.role)) {
-        throw new BadRequestException('Invalid role');
-      }
-
-      // Check if role exist
-      const role = await this.roleService.findByName(createUserDto.role);
-
-      // Create user detail
-      const newUserDetail = new UserDetail();
-      newUserDetail.fullName = createUserDto.fullName;
-      newUserDetail.gender = createUserDto.gender;
-      newUserDetail.dateOfBirth = createUserDto.dateOfBirth;
-      newUserDetail.phoneNumber = createUserDto.phoneNumber;
-      newUserDetail.province = createUserDto.province;
-      newUserDetail.city = createUserDto.city;
-      newUserDetail.district = createUserDto.district;
-      newUserDetail.subDistrict = createUserDto.subDistrict;
-      newUserDetail.street = createUserDto.street;
-
-      const insertUserDetail = await this.userDetailRepository.insert(
-        newUserDetail,
-      );
-
-      // Generate salt
-      const salt = await bcrypt.genSalt();
-      const hashPassword = await bcrypt.hash(createUserDto.password, salt);
-
-      const newUser = new User();
-      newUser.email = createUserDto.email;
-      newUser.userDetail = insertUserDetail.identifiers[0].id;
-      newUser.role = role;
-      newUser.salt = salt;
-      newUser.password = hashPassword;
-
-      const insertUser = await this.usersRepository.insert(newUser);
-
-      // TODO: add language and specialization for translator
-      // Check if role is translator
-      if (createUserDto.role === 'translator') {
-        const translatorData = {
-          yearsOfExperience: createUserDto.yearsOfExperience,
-          portfolioLink: createUserDto.portfolioLink,
-          bank: createUserDto.bank,
-          bankAccountNumber: createUserDto.bankAccountNumber,
-          userId: insertUser.identifiers[0].id,
-          cv: files.cv[0].filename,
-          certificate: files.certificate[0].filename,
-        };
-
-        await this.translatorService.create(translatorData);
-      }
-
-      return await this.usersRepository.findOneOrFail({
-        where: {
-          id: insertUser.identifiers[0].id,
-        },
-        relations: {
-          userDetail: true,
-          role: true,
-          translator: true,
-        },
+        if (createUserDto.role === 'translator') {
+          const translatorData = {
+            yearsOfExperience: createUserDto.yearsOfExperience,
+            portfolioLink: createUserDto.portfolioLink,
+            bank: createUserDto.bank,
+            bankAccountNumber: createUserDto.bankAccountNumber,
+            userId: user.id,
+            cv: documents.cv[0].filename,
+            certificate: documents.certificate[0].filename,
+            languages: createUserDto.languages,
+            specializations: createUserDto.specializations,
+          };
+          await this.translatorService.create(
+            translatorData,
+            transactionEntityManager,
+          );
+        }
       });
     } catch (error) {
       throw error;
     }
+  }
+
+  private async checkIfUserExists(email: string): Promise<void> {
+    const isUserExist = await this.usersRepository.findOne({
+      where: { email },
+    });
+    if (isUserExist) {
+      throw new ConflictException(
+        'This email is already in use. Please try a different one.',
+      );
+    }
+  }
+
+  private validateRole(role: string): void {
+    const allowedRoles = ['client', 'translator'];
+    if (!allowedRoles.includes(role)) {
+      throw new BadRequestException('Invalid role');
+    }
+  }
+
+  private async createUserDetail(
+    createUserDto: CreateUserDto,
+    transactionalEntityManager: EntityManager,
+  ): Promise<UserDetail> {
+    const newUserDetail = new UserDetail();
+    Object.assign(newUserDetail, {
+      fullName: createUserDto.fullName,
+      gender: createUserDto.gender,
+      dateOfBirth: createUserDto.dateOfBirth,
+      phoneNumber: createUserDto.phoneNumber,
+      province: createUserDto.province,
+      city: createUserDto.city,
+      district: createUserDto.district,
+      subDistrict: createUserDto.subDistrict,
+      street: createUserDto.street,
+    });
+
+    return transactionalEntityManager.save(UserDetail, newUserDetail);
+  }
+
+  private async createUser(
+    createUserDto: CreateUserDto,
+    role: Role,
+    userDetail: UserDetail,
+    transactionalEntityManager: EntityManager,
+  ): Promise<User> {
+    const salt = await bcrypt.genSalt();
+    const hashPassword = await bcrypt.hash(createUserDto.password, salt);
+
+    const newUser = new User();
+    Object.assign(newUser, {
+      email: createUserDto.email,
+      userDetail: userDetail,
+      role: role,
+      salt: salt,
+      password: hashPassword,
+    });
+
+    return transactionalEntityManager.save(User, newUser);
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -131,7 +161,7 @@ export class UsersService {
     };
   }
 
-  async findOne(id: string) {
+  async findById(id: string) {
     try {
       const user = await this.usersRepository.findOneOrFail({
         where: {
@@ -160,7 +190,7 @@ export class UsersService {
 
   async update(id: string, updateUserDto: UpdateUserDto) {
     try {
-      const user = await this.findOne(id);
+      const user = await this.findById(id);
 
       const existEmail = await this.usersRepository.findOne({
         where: { email: updateUserDto.email },
@@ -189,7 +219,7 @@ export class UsersService {
 
       await this.userDetailRepository.update(user.userDetail.id, newUserDetail);
 
-      return await this.findOne(id);
+      return await this.findById(id);
     } catch (error) {
       throw error;
     }
@@ -197,7 +227,7 @@ export class UsersService {
 
   async remove(id: string) {
     try {
-      await this.findOne(id);
+      await this.findById(id);
       await this.usersRepository.softDelete(id);
     } catch (error) {
       throw error;

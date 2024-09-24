@@ -1,26 +1,28 @@
-import { TranslatorSpecializations } from '#/translator/entities/translator-specializations.entity';
+import { Language } from '#/language/entities/language.entity';
 import {
-  Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Translator } from './translator.entity';
 
-@Entity()
-export class Specialization {
+@Entity({ name: 'translator_languages' })
+export class TranslatorLanguages {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
-  name: string;
-
-  @Column({
-    type: 'text',
+  @ManyToOne(() => Translator, (translator) => translator.translatorLanguages, {
+    onDelete: 'CASCADE',
   })
-  logo: string;
+  translator: Translator;
+
+  @ManyToOne(() => Language, (language) => language.translatorLanguages, {
+    onDelete: 'CASCADE',
+  })
+  language: Language;
 
   @CreateDateColumn({
     name: 'created_at',
@@ -42,10 +44,4 @@ export class Specialization {
     nullable: true,
   })
   deletedAt: Date;
-
-  @OneToMany(
-    () => TranslatorSpecializations,
-    (translatorSpecialization) => translatorSpecialization.specialization,
-  )
-  translatorSpecializations: TranslatorSpecializations[];
 }

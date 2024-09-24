@@ -5,14 +5,18 @@ import {
   DeleteDateColumn,
   Entity,
   JoinColumn,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { TranslatorLanguages } from './translator-languages.entity';
+import { TranslatorSpecializations } from './translator-specializations.entity';
 
 export enum TranslatorStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
+  APPROVED = 'approved',
+  PENDING = 'pending',
+  REJECTED = 'rejected',
 }
 
 @Entity()
@@ -92,7 +96,21 @@ export class Translator {
   })
   deletedAt: Date;
 
-  @OneToOne(() => User, (user) => user.translator)
+  @OneToOne(() => User, (user) => user.translator, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @OneToMany(
+    () => TranslatorLanguages,
+    (translatorLanguages) => translatorLanguages.translator,
+  )
+  translatorLanguages: TranslatorLanguages[];
+
+  @OneToMany(
+    () => TranslatorSpecializations,
+    (specialization) => specialization.translator,
+  )
+  translatorSpecializations: TranslatorSpecializations[];
 }

@@ -73,7 +73,7 @@ export class LanguageService {
     }
   }
 
-  async findOne(id: string) {
+  async findById(id: string) {
     try {
       const data = await this.languageRepository.findOneOrFail({
         where: { id },
@@ -96,7 +96,7 @@ export class LanguageService {
   ) {
     try {
       // Find old data
-      const oldData = await this.findOne(id);
+      const oldData = await this.findById(id);
 
       // Create new data
       const langEntity = new Language();
@@ -124,7 +124,7 @@ export class LanguageService {
 
   async remove(id: string) {
     try {
-      await this.findOne(id);
+      await this.findById(id);
 
       await this.languageRepository.softDelete(id);
 

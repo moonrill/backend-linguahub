@@ -6,6 +6,6 @@ export class CreateTranslatorDto {
   bankAccountNumber: string;
   cv: string;
   certificate: string;
-  // languages: string[];
-  // specializations: string[];
+  languages: string[];
+  specializations: string[];
 }

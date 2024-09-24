@@ -1,8 +1,10 @@
+import { TranslatorLanguages } from '#/translator/entities/translator-languages.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -48,4 +50,10 @@ export class Language {
     nullable: true,
   })
   deletedAt: Date;
+
+  @OneToMany(
+    () => TranslatorLanguages,
+    (translatorLanguage) => translatorLanguage.language,
+  )
+  translatorLanguages: TranslatorLanguages[];
 }

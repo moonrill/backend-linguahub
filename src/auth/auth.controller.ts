@@ -1,7 +1,49 @@
-import { Controller } from '@nestjs/common';
+import { CreateUserDto } from '#/users/dto/create-user.dto';
+import { translatorDocumentStorage } from '#/utils/upload-documents';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  HttpStatus,
+  Post,
+  UploadedFiles,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'cv', maxCount: 1 },
+        { name: 'certificate', maxCount: 1 },
+      ],
+      translatorDocumentStorage,
+    ),
+  )
+  async register(
+    @UploadedFiles()
+    documents: {
+      cv?: Express.Multer.File[];
+      certificate?: Express.Multer.File[];
+    },
+    @Body() createUserDto: CreateUserDto,
+  ) {
+    if (createUserDto.role === 'translator') {
+      if (!documents.cv || !documents.certificate) {
+        throw new BadRequestException('Please upload your cv and certificate');
+      }
+    }
+
+    return {
+      data: await this.authService.register(createUserDto, documents),
+      statusCode: HttpStatus.CREATED,
+      message: 'Register success',
+    };
+  }
 }
