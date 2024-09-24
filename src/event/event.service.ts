@@ -7,7 +7,6 @@ import { Event } from './event.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 
-
 @Injectable()
 export class EventService {
   constructor(
@@ -33,42 +32,44 @@ export class EventService {
   }
 
   async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {
-    const event = await this.eventRepository.preload({
-        id: id,
-        ...updateEventDto,
-    });
-
+    const event = await this.eventRepository.findOne({ where: { id } });
+    
     if (!event) {
-        throw new NotFoundException(`Event with ID ${id} not found`);
+      throw new NotFoundException(`Event with ID ${id} not found`);
+    }
+
+    // Update existing fields
+    Object.assign(event, updateEventDto);
+
+    // Handle poster update and delete old one
+    if (updateEventDto.poster) {
+      // Delete old poster if exists
+      if (event.poster) {
+        const oldPosterPath = path.join(__dirname, '..', '..', 'src', 'event', 'poster', event.poster);
+        if (fs.existsSync(oldPosterPath)) {
+          fs.unlinkSync(oldPosterPath); // Delete old poster
+        }
+      }
+      event.poster = updateEventDto.poster; // Assign new poster filename
     }
 
     return this.eventRepository.save(event);
-}
+  }
 
-  // Fungsi untuk menghapus gambar lama dan mengupdate poster
-  async updatePoster(id: string, newPosterFilename: string): Promise<Event> {
+  async remove(id: string): Promise<void> {
     const event = await this.eventRepository.findOne({ where: { id } });
     if (!event) {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
 
-    // Jika ada poster lama, hapus file tersebut
+    // Remove associated poster file if exists
     if (event.poster) {
-      const oldPosterPath = path.join(__dirname, '..', '..', 'src', 'event', 'poster', event.poster);
-      if (fs.existsSync(oldPosterPath)) {
-        fs.unlinkSync(oldPosterPath);
+      const posterPath = path.join(__dirname, '..', '..', 'src', 'event', 'poster', event.poster);
+      if (fs.existsSync(posterPath)) {
+        fs.unlinkSync(posterPath);
       }
     }
 
-    event.poster = newPosterFilename;
-    return this.eventRepository.save(event);
-  }
-  
-
-  async remove(id: string): Promise<void> {
-    const result = await this.eventRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Event with ID ${id} not found`);
-    }
+    await this.eventRepository.remove(event);
   }
 }

@@ -15,4 +15,5 @@ export class CreateEventDto {
 
   // @IsString() 
   // poster: string;
+  poster: string; // Tambahkan properti poster
 }

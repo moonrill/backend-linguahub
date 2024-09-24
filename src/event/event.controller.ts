@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, Patch, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, UseInterceptors, UploadedFile, Body, Param, Patch } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -13,41 +13,54 @@ export class EventController {
   constructor(private readonly eventService: EventService) {}
 
   @Post()
-  create(@Body() createEventDto: CreateEventDto): Promise<Event> {
+  @UseInterceptors(FileInterceptor('poster', {
+    storage: diskStorage({
+      destination: path.join(__dirname, '../../src/event/poster'),
+      filename: (req, file, cb) => {
+        const randomName = Array(32).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('');
+        cb(null, `${randomName}${extname(file.originalname)}`);
+      },
+    }),
+  }))
+  async create(@UploadedFile() file: Express.Multer.File, @Body() createEventDto: CreateEventDto): Promise<Event> {
+    if (file) {
+      createEventDto.poster = file.filename; // Save the filename of the poster
+    }
     return this.eventService.create(createEventDto);
   }
 
-  @Post('poster/:id')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: path.join(__dirname, '../../src/event/poster'), // Gunakan path absolut
-        filename: (req, file, cb) => {
-          const randomName = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-          cb(null, `${randomName}${extname(file.originalname)}`);
-        },
-      }),
-      fileFilter: (req, file, cb) => {
-        if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-          console.error('Invalid file type:', file.mimetype);
-          return cb(new Error('Only image files are allowed!'), false);
-        }
-        if (file.size > 5 * 1024 * 1024) {
-          console.error('File size exceeds 5MB:', file.size);
-          return cb(new Error('File size must be less than 5MB!'), false);
-        }
-        cb(null, true);
+  @Put(':id')
+  @UseInterceptors(FileInterceptor('poster', {
+    storage: diskStorage({
+      destination: path.join(__dirname, '../../src/event/poster'),
+      filename: (req, file, cb) => {
+        const randomName = Array(32).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('');
+        cb(null, `${randomName}${extname(file.originalname)}`);
       },
     }),
-  )
-  async uploadOrUpdatePoster(@Param('id') id: string, @UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      return { message: 'No file provided!' };
+  }))
+  async updatePut(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Body() updateEventDto: UpdateEventDto): Promise<Event> {
+    if (file) {
+      updateEventDto.poster = file.filename; // Save the filename of the poster if new one is uploaded
     }
-    return this.eventService.updatePoster(id, file.filename);
+    return this.eventService.update(id, updateEventDto);
+  }
+
+  @Patch(':id')
+  @UseInterceptors(FileInterceptor('poster', {
+    storage: diskStorage({
+      destination: path.join(__dirname, '../../src/event/poster'),
+      filename: (req, file, cb) => {
+        const randomName = Array(32).fill(null).map(() => Math.round(Math.random() * 16).toString(16)).join('');
+        cb(null, `${randomName}${extname(file.originalname)}`);
+      },
+    }),
+  }))
+  async updatePatch(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Body() updateEventDto: UpdateEventDto): Promise<Event> {
+    if (file) {
+      updateEventDto.poster = file.filename; // Update poster filename if a new file is uploaded
+    }
+    return this.eventService.update(id, updateEventDto);
   }
 
   @Get()
@@ -58,16 +71,6 @@ export class EventController {
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Event> {
     return this.eventService.findOne(id);
-  }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto): Promise<Event> {
-      return this.eventService.update(id, updateEventDto);
-  }
-  
-  @Patch(':id')
-  partialUpdate(@Param('id') id: string, @Body() updateEventDto: UpdateEventDto): Promise<Event> {
-    return this.eventService.update(id, updateEventDto);
   }
 
   @Delete(':id')
