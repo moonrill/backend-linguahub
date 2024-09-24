@@ -6,9 +6,15 @@ import { Logger } from 'nestjs-pino';
 import { CorrelationIdMiddleware } from './utils/correlation-id.middleware';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { join } from 'path';
+
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  app.useStaticAssets(join(__dirname, '..', '..', 'poster')); 
+
+
 
   const logger = app.get(Logger);
 
