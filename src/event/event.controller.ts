@@ -35,6 +35,10 @@ export class EventController {
           console.error('Invalid file type:', file.mimetype);
           return cb(new Error('Only image files are allowed!'), false);
         }
+        if (file.size > 5 * 1024 * 1024) {
+          console.error('File size exceeds 5MB:', file.size);
+          return cb(new Error('File size must be less than 5MB!'), false);
+        }
         cb(null, true);
       },
     }),

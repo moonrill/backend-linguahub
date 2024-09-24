@@ -45,7 +45,6 @@ export class EventService {
     return this.eventRepository.save(event);
 }
 
-    // Update poster URL
   // Fungsi untuk menghapus gambar lama dan mengupdate poster
   async updatePoster(id: string, newPosterFilename: string): Promise<Event> {
     const event = await this.eventRepository.findOne({ where: { id } });
@@ -61,7 +60,6 @@ export class EventService {
       }
     }
 
-    // Update poster dengan gambar baru
     event.poster = newPosterFilename;
     return this.eventRepository.save(event);
   }
