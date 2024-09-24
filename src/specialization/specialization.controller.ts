@@ -1,3 +1,6 @@
+import { Role } from '#/auth/role.enum';
+import { Roles } from '#/auth/roles.decorator';
+import { Public } from '#/auth/strategies/public.strategy';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { uploadImage } from '#/utils/upload-image';
 import {
@@ -24,6 +27,7 @@ import { SpecializationService } from './specialization.service';
 export class SpecializationController {
   constructor(private readonly specializationService: SpecializationService) {}
 
+  @Roles(Role.ADMIN)
   @Post()
   @UseInterceptors(FileInterceptor('logo', uploadImage('specialization')))
   async create(
@@ -45,6 +49,7 @@ export class SpecializationController {
     };
   }
 
+  @Public()
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {
     const result = await this.specializationService.findAll(paginationDto);
@@ -56,6 +61,7 @@ export class SpecializationController {
     };
   }
 
+  @Public()
   @Get(':name')
   async findOne(@Param('name') name: string) {
     return {
@@ -65,6 +71,7 @@ export class SpecializationController {
     };
   }
 
+  @Roles(Role.ADMIN)
   @Put(':id')
   @UseInterceptors(FileInterceptor('logo', uploadImage('specialization')))
   async update(
@@ -83,6 +90,7 @@ export class SpecializationController {
     };
   }
 
+  @Roles(Role.ADMIN)
   @Delete(':id')
   remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.specializationService.remove(id);

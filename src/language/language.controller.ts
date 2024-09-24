@@ -1,3 +1,6 @@
+import { Role } from '#/auth/role.enum';
+import { Roles } from '#/auth/roles.decorator';
+import { Public } from '#/auth/strategies/public.strategy';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { uploadImage } from '#/utils/upload-image';
 import {
@@ -24,6 +27,7 @@ import { LanguageService } from './language.service';
 export class LanguageController {
   constructor(private readonly languageService: LanguageService) {}
 
+  @Roles(Role.ADMIN)
   @Post()
   @UseInterceptors(FileInterceptor('flag_image', uploadImage('flag')))
   async create(
@@ -42,6 +46,7 @@ export class LanguageController {
     };
   }
 
+  @Public()
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {
     const result = await this.languageService.findAll(paginationDto);
@@ -53,6 +58,7 @@ export class LanguageController {
     };
   }
 
+  @Public()
   @Get(':id')
   async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return {
@@ -62,6 +68,7 @@ export class LanguageController {
     };
   }
 
+  @Roles(Role.ADMIN)
   @Put(':id')
   @UseInterceptors(FileInterceptor('flag_image', uploadImage('flag')))
   async update(
@@ -77,6 +84,7 @@ export class LanguageController {
     };
   }
 
+  @Roles(Role.ADMIN)
   @Delete(':id')
   async remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.languageService.remove(id);

@@ -89,6 +89,9 @@ export class UserDetail {
   })
   deletedAt: Date;
 
-  @OneToOne(() => User, (user) => user.userDetail)
+  @OneToOne(() => User, (user) => user.userDetail, {
+    onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
+  })
   user: User;
 }

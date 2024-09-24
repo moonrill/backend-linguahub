@@ -11,11 +11,14 @@ import {
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
+import { Public } from './strategies/public.strategy';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('register')
   @UseInterceptors(
     FileFieldsInterceptor(
@@ -44,6 +47,16 @@ export class AuthController {
       data: await this.authService.register(createUserDto, documents),
       statusCode: HttpStatus.CREATED,
       message: 'Register success',
+    };
+  }
+
+  @Public()
+  @Post('login')
+  async login(@Body() loginDto: LoginDto) {
+    return {
+      data: await this.authService.login(loginDto),
+      statusCode: HttpStatus.OK,
+      message: 'Login success',
     };
   }
 }

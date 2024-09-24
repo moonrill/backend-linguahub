@@ -77,6 +77,15 @@ export class UsersService {
             transactionEntityManager,
           );
         }
+
+        return transactionEntityManager.findOneOrFail(User, {
+          where: { id: user.id },
+          relations: {
+            userDetail: true,
+            role: true,
+            translator: true,
+          },
+        });
       });
     } catch (error) {
       throw error;
@@ -182,6 +191,30 @@ export class UsersService {
     } catch (e) {
       if (e instanceof EntityNotFoundError) {
         throw new NotFoundException('User not found');
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  async findByEmail(email: string) {
+    try {
+      const user = await this.usersRepository.findOneOrFail({
+        where: {
+          email,
+        },
+        relations: {
+          role: true,
+          translator: true,
+        },
+      });
+
+      return user;
+    } catch (e) {
+      if (e instanceof EntityNotFoundError) {
+        throw new NotFoundException(
+          "We're sorry, no account was found with that email address.",
+        );
       } else {
         throw e;
       }
