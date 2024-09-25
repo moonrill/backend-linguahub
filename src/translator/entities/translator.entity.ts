@@ -1,3 +1,4 @@
+import { Service } from '#/service/entities/service.entity';
 import { User } from '#/users/entities/user.entity';
 import {
   Column,
@@ -113,4 +114,9 @@ export class Translator {
     (specialization) => specialization.translator,
   )
   translatorSpecializations: TranslatorSpecializations[];
+
+  @OneToMany(() => Service, (service) => service.translator, {
+    onDelete: 'CASCADE',
+  })
+  services: Service[];
 }

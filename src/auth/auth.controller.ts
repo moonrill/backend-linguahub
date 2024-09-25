@@ -4,8 +4,10 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpStatus,
   Post,
+  Request,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
@@ -57,6 +59,15 @@ export class AuthController {
       data: await this.authService.login(loginDto),
       statusCode: HttpStatus.OK,
       message: 'Login success',
+    };
+  }
+
+  @Get('profile')
+  async profile(@Request() req) {
+    return {
+      data: req.user,
+      statusCode: HttpStatus.OK,
+      message: 'Success get profile',
     };
   }
 }
