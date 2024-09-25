@@ -18,6 +18,7 @@ import { RoleModule } from './role/role.module';
 import { SpecializationModule } from './specialization/specialization.module';
 import { TranslatorModule } from './translator/translator.module';
 import { UsersModule } from './users/users.module';
+import { ServiceModule } from './service/service.module';
 
 @Module({
   imports: [
@@ -116,6 +117,7 @@ import { UsersModule } from './users/users.module';
     CouponModule,
     SpecializationModule,
     AuthModule,
+    ServiceModule,
   ],
 })
 export class AppModule {}

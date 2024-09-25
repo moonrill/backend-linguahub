@@ -89,6 +89,20 @@ export class LanguageService {
     }
   }
 
+  async findByName(name: string) {
+    try {
+      return await this.languageRepository.findOneOrFail({
+        where: { name },
+      });
+    } catch (e) {
+      if (e instanceof EntityNotFoundError) {
+        throw new NotFoundException('Language not found');
+      } else {
+        throw e;
+      }
+    }
+  }
+
   async update(
     id: string,
     updateLanguageDto: UpdateLanguageDto,

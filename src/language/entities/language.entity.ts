@@ -1,3 +1,4 @@
+import { Service } from '#/service/entities/service.entity';
 import { TranslatorLanguages } from '#/translator/entities/translator-languages.entity';
 import {
   Column,
@@ -56,4 +57,10 @@ export class Language {
     (translatorLanguage) => translatorLanguage.language,
   )
   translatorLanguages: TranslatorLanguages[];
+
+  @OneToMany(() => Service, (service) => service.sourceLanguage)
+  sourceServices: Service[];
+
+  @OneToMany(() => Service, (service) => service.targetLanguage)
+  targetServices: Service[];
 }
