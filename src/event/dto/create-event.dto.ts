@@ -17,12 +17,6 @@ export class CreateEventDto {
   @IsDateString()
   end_date: string;
 
-<<<<<<< HEAD
   // @IsString()
   poster: string;
-=======
-  // @IsString() 
-  // poster: string;
-  poster?: string; 
->>>>>>> 830a0d219f492a0d79e4d9277b75e455aee2a32e
 }

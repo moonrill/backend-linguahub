@@ -20,8 +20,4 @@ export class UpdateEventDto {
     @IsOptional()
     @IsString()
     poster?: string;
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 830a0d219f492a0d79e4d9277b75e455aee2a32e

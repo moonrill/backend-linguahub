@@ -10,9 +10,6 @@ import {
   Param,
   NotFoundException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { ConfigService } from '@nestjs/config';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -22,7 +19,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as path from 'path'; 
-import { ConfigService } from '@nestjs/config'; 
 
 @Controller('event')
 export class EventController {
