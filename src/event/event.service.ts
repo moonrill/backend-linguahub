@@ -41,9 +41,9 @@ export class EventService {
       throw new NotFoundException(`Event with ID ${id} not found`);
     }
   
+    // Simpan event dengan poster lama jika poster tidak diperbarui
     return this.eventRepository.save(event);
   }
-
   async remove(id: string): Promise<void> {
     const event = await this.eventRepository.findOne({ where: { id } });
     

@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Put, Delete, UseInterceptors, UploadedFile, Body, Param, Patch } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { EventService } from './event.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -50,21 +51,25 @@ export class EventController {
     }),
   }))
   async update(@Param('id') id: string, @UploadedFile() file: Express.Multer.File, @Body() updateEventDto: UpdateEventDto): Promise<Event> {
-    if (file) {
-      updateEventDto.poster = file.filename;
+    const existingEvent = await this.eventService.findOne(id);
+    
+    if (!existingEvent) {
+      throw new NotFoundException(`Event with ID ${id} not found`);
     }
-    const event = await this.eventService.update(id, updateEventDto);
     
     if (file) {
-      event.poster = `${this.basePosterUrl}${event.poster}`;
+      // Jika ada file poster baru, simpan nama file baru
+      updateEventDto.poster = file.filename;
     } else {
-      const existingEvent = await this.eventService.findOne(id);
-      event.poster = `${this.basePosterUrl}${existingEvent.poster}`; 
+      // Jika tidak ada file baru, gunakan poster yang lama
+      updateEventDto.poster = existingEvent.poster;
     }
-
-    return event;
+  
+    const updatedEvent = await this.eventService.update(id, updateEventDto);
+  
+    updatedEvent.poster = `${this.basePosterUrl}${updatedEvent.poster}`;
+    return updatedEvent;
   }
-
   @Get()
   async findAll(): Promise<Event[]> {
     const events = await this.eventService.findAll();
