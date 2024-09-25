@@ -6,6 +6,8 @@ import { Logger } from 'nestjs-pino';
 import { CorrelationIdMiddleware } from './utils/correlation-id.middleware';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { join } from 'path';
+
 
 
 async function bootstrap() {
