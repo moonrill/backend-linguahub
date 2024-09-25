@@ -63,9 +63,17 @@ export class SpecializationController {
 
   @Public()
   @Get(':name')
-  async findOne(@Param('name') name: string) {
+  async findOne(
+    @Param('name') name: string,
+    @Query() paginationDto: PaginationDto,
+  ) {
+    const result = await this.specializationService.findByName(
+      name,
+      paginationDto,
+    );
+
     return {
-      data: await this.specializationService.findByName(name),
+      ...result,
       statusCode: HttpStatus.OK,
       message: 'Success get specialization by name',
     };

@@ -1,7 +1,12 @@
+import { TranslatorSpecializations } from '#/translator/entities/translator-specializations.entity';
+import { Translator } from '#/translator/entities/translator.entity';
+import { TranslatorService } from '#/translator/translator.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   BadRequestException,
+  forwardRef,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -17,6 +22,12 @@ export class SpecializationService {
   constructor(
     @InjectRepository(Specialization)
     private specializationRepository: Repository<Specialization>,
+    @InjectRepository(TranslatorSpecializations)
+    private translatorSpecializationRepository: Repository<TranslatorSpecializations>,
+    @InjectRepository(Translator)
+    private translatorRepository: Repository<Translator>,
+    @Inject(forwardRef(() => TranslatorService))
+    private translatorService: TranslatorService,
     private configService: ConfigService,
   ) {}
   async create(
@@ -74,15 +85,42 @@ export class SpecializationService {
     }
   }
 
-  async findByName(name: string) {
+  async findByName(name: string, paginationDto: PaginationDto) {
     try {
-      const data = await this.specializationRepository.findOneOrFail({
-        where: {
-          name,
-        },
-      });
+      const { page, limit } = paginationDto;
+      const [data, total] =
+        await this.translatorSpecializationRepository.findAndCount({
+          skip: (page - 1) * limit,
+          take: limit,
+          where: {
+            specialization: {
+              name: ILike(`%${name}%`),
+            },
+          },
+          relations: [
+            'translator',
+            'translator.user',
+            'translator.user.userDetail',
+            'translator.translatorLanguages.language',
+            'translator.translatorSpecializations.specialization',
+          ],
+        });
 
-      return data;
+      const translators = data.map((ts) => ts.translator);
+
+      const destructedTranslators = translators.map((translator) =>
+        this.translatorService.destructTranslator(translator),
+      );
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data: destructedTranslators,
+        total,
+        page,
+        totalPages,
+        limit,
+      };
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Specialization not found');

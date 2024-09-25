@@ -1,7 +1,7 @@
 import { LanguageModule } from '#/language/language.module';
 import { SpecializationModule } from '#/specialization/specialization.module';
 import { User } from '#/users/entities/user.entity';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TranslatorLanguages } from './entities/translator-languages.entity';
 import { TranslatorSpecializations } from './entities/translator-specializations.entity';
@@ -18,7 +18,7 @@ import { TranslatorService } from './translator.service';
       TranslatorSpecializations,
     ]),
     LanguageModule,
-    SpecializationModule,
+    forwardRef(() => SpecializationModule),
   ],
   controllers: [TranslatorController],
   providers: [TranslatorService],

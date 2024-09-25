@@ -3,7 +3,12 @@ import { ServiceStatus } from '#/service/entities/service.entity';
 import { SpecializationService } from '#/specialization/specialization.service';
 import { User } from '#/users/entities/user.entity';
 import { PaginationDto } from '#/utils/pagination.dto';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, EntityNotFoundError, Repository } from 'typeorm';
@@ -23,6 +28,7 @@ export class TranslatorService {
     private translatorRepository: Repository<Translator>,
     private configService: ConfigService,
     private languageService: LanguageService,
+    @Inject(forwardRef(() => SpecializationService))
     private specializationService: SpecializationService,
   ) {}
 
