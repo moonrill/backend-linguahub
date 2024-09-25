@@ -1,3 +1,4 @@
+import { Review } from '#/review/entities/review.entity';
 import { Role } from '#/role/entities/role.entity';
 import { Translator } from '#/translator/entities/translator.entity';
 import {
@@ -7,6 +8,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -60,4 +62,7 @@ export class User {
   })
   @JoinColumn({ name: 'translator_id' })
   translator: Translator;
+
+  @OneToMany(() => Review, (review) => review.user)
+  reviews: Review[];
 }

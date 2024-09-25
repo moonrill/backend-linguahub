@@ -1,3 +1,4 @@
+import { Review } from '#/review/entities/review.entity';
 import { Service } from '#/service/entities/service.entity';
 import { User } from '#/users/entities/user.entity';
 import {
@@ -119,4 +120,7 @@ export class Translator {
     onDelete: 'CASCADE',
   })
   services: Service[];
+
+  @OneToMany(() => Review, (review) => review.translator)
+  reviews: Review[];
 }

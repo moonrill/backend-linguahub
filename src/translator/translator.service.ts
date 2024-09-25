@@ -276,19 +276,25 @@ export class TranslatorService {
           'services',
           'services.sourceLanguage',
           'services.targetLanguage',
+          'reviews',
         ],
       });
 
       const translatorWithServices = data.map((translator) => {
-        const { services, ...detail } = translator;
+        const { services, reviews, ...detail } = translator;
         const relevantServices = services.filter(
           (service) =>
             service.sourceLanguage.id ===
               searchTranslatorDto.sourceLanguageId &&
             service.targetLanguage.id === searchTranslatorDto.targetLanguageId,
         );
+
+        // Calculate the review count
+        const reviewCount = reviews.length;
+
         return {
           ...detail,
+          reviewCount,
           services: relevantServices,
         };
       });
@@ -314,7 +320,13 @@ export class TranslatorService {
             return aMinPrice - bMinPrice;
           });
           break;
-        // TODO: Add mostReviewed
+        case TranslatorSortBy.MOST_REVIEWS:
+          sortedData = translatorWithServices.sort(
+            (a, b) => b.reviewCount - a.reviewCount,
+          );
+          break;
+        default:
+          sortedData = translatorWithServices;
       }
 
       const totalPages = Math.ceil(total / limit);

@@ -19,6 +19,7 @@ import { SpecializationModule } from './specialization/specialization.module';
 import { TranslatorModule } from './translator/translator.module';
 import { UsersModule } from './users/users.module';
 import { ServiceModule } from './service/service.module';
+import { ReviewModule } from './review/review.module';
 
 @Module({
   imports: [
@@ -118,6 +119,7 @@ import { ServiceModule } from './service/service.module';
     SpecializationModule,
     AuthModule,
     ServiceModule,
+    ReviewModule,
   ],
 })
 export class AppModule {}
