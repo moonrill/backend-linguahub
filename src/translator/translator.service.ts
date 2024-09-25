@@ -205,10 +205,14 @@ export class TranslatorService {
     }
   }
 
-  // TODO: Restruct Review & Service
   destructTranslator(translator: Translator) {
-    const { translatorLanguages, translatorSpecializations, user, ...detail } =
-      translator;
+    const {
+      translatorLanguages,
+      translatorSpecializations,
+      reviews,
+      user,
+      ...detail
+    } = translator;
 
     const languages = translatorLanguages.map((tl) => ({
       name: tl.language.name,
@@ -224,10 +228,22 @@ export class TranslatorService {
 
     const translatorDetail = { email, ...restUserDetail, ...detail };
 
+    const reviewsData = reviews.map((review) => {
+      const { user, ...restReview } = review;
+      return {
+        ...restReview,
+        user: {
+          fullName: user.userDetail.fullName,
+          profileImage: user.userDetail.profilePicture,
+        },
+      };
+    });
+
     return {
       ...translatorDetail,
       languages,
       specializations,
+      reviews: reviewsData,
     };
   }
 
@@ -244,6 +260,7 @@ export class TranslatorService {
           'services',
           'services.sourceLanguage',
           'services.targetLanguage',
+          'reviews.user.userDetail',
         ],
       });
 
