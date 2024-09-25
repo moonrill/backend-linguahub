@@ -13,6 +13,6 @@ export class CreateEventDto {
   @IsDateString()
   end_date: string;
 
-  @IsString()
+  // @IsString()
   poster: string;
 }

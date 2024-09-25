@@ -102,6 +102,7 @@ import { UsersModule } from './users/users.module';
       },
       inject: [ConfigService],
     }),
+    
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads/images'),
       serveRoot: '/images',
