@@ -1,9 +1,13 @@
 import { LanguageService } from '#/language/language.service';
-import { Translator } from '#/translator/entities/translator.entity';
+import {
+  Translator,
+  TranslatorStatus,
+} from '#/translator/entities/translator.entity';
 import { TranslatorService } from '#/translator/translator.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   BadRequestException,
+  ForbiddenException,
   HttpStatus,
   Injectable,
   NotFoundException,
@@ -28,6 +32,12 @@ export class ServiceService {
   async create(createServiceDto: CreateServiceDto, userId: string) {
     try {
       const translator = await this.translatorService.findByUserId(userId);
+
+      if (translator.status !== TranslatorStatus.APPROVED) {
+        throw new ForbiddenException(
+          'Sorry but you cant create service now. Please check your email for more information.',
+        );
+      }
 
       const sourceLanguage = await this.languageService.findById(
         createServiceDto.sourceLanguageId,

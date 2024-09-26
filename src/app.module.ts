@@ -20,6 +20,8 @@ import { TranslatorModule } from './translator/translator.module';
 import { UsersModule } from './users/users.module';
 import { ServiceModule } from './service/service.module';
 import { ReviewModule } from './review/review.module';
+import { BookingModule } from './booking/booking.module';
+import { ServiceRequestModule } from './service-request/service-request.module';
 
 @Module({
   imports: [
@@ -120,6 +122,8 @@ import { ReviewModule } from './review/review.module';
     AuthModule,
     ServiceModule,
     ReviewModule,
+    BookingModule,
+    ServiceRequestModule,
   ],
 })
 export class AppModule {}

@@ -1,3 +1,4 @@
+import { Booking } from '#/booking/entities/booking.entity';
 import { Language } from '#/language/entities/language.entity';
 import { Translator } from '#/translator/entities/translator.entity';
 import {
@@ -6,6 +7,7 @@ import {
   DeleteDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -66,4 +68,7 @@ export class Service {
 
   @ManyToOne(() => Language, (language) => language.targetServices)
   targetLanguage: Language;
+
+  @OneToMany(() => Booking, (booking) => booking.service)
+  bookings: Booking[];
 }
