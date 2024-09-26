@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 import { Coupon } from 'src/coupon/coupon.entity';
 
 @Entity()
@@ -18,6 +18,15 @@ export class Event {
   @Column({ nullable: true })
   end_date: string;
 
-  @Column({ nullable: true })
+  @Column('text',{ nullable: true } )
   poster: string;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
+
+  @OneToMany(() => Coupon, coupon => coupon.event)
+  coupons: Coupon[]; 
 }

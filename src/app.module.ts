@@ -106,6 +106,7 @@ import { ServiceRequestModule } from './service-request/service-request.module';
       },
       inject: [ConfigService],
     }),
+    
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads/images'),
       serveRoot: '/images',

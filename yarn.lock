@@ -1113,11 +1113,11 @@
   resolved "https://registry.yarnpkg.com/@nestjs/platform-express/-/platform-express-9.3.9.tgz#557ace8589b54d4ee7bad87a1247a521058395d7"
   integrity sha512-f8ja2sYuDGj2QSMmjg05n3WF19wJG5yTiYxRi64nsu5GKL0qLM1LzxNemehkni/knExlvF2bDpbKKpna9nC1JA==
   dependencies:
-    body-parser "1.20.1"
+    body-parser "1.20.2"
     cors "2.8.5"
     express "4.18.2"
     multer "1.4.4-lts.1"
-    tslib "2.5.0"
+    tslib "2.5.3"
 
 "@nestjs/platform-fastify@^9.3.9":
   version "9.3.9"
@@ -2156,6 +2156,24 @@ body-parser@1.20.1:
     type-is "~1.6.18"
     unpipe "1.0.0"
 
+body-parser@1.20.2:
+  version "1.20.2"
+  resolved "https://registry.npmjs.org/body-parser/-/body-parser-1.20.2.tgz"
+  integrity sha512-ml9pReCu3M61kGlqoTm2umSXTlRTuGTx0bfYj+uIUKKYycG5NtSbeetV3faSU6R7ajOPw0g/J1PvK4qNy7s5bA==
+  dependencies:
+    bytes "3.1.2"
+    content-type "~1.0.5"
+    debug "2.6.9"
+    depd "2.0.0"
+    destroy "1.2.0"
+    http-errors "2.0.0"
+    iconv-lite "0.4.24"
+    on-finished "2.4.1"
+    qs "6.11.0"
+    raw-body "2.5.2"
+    type-is "~1.6.18"
+    unpipe "1.0.0"
+
 boxen@5.1.2:
   version "5.1.2"
   resolved "https://registry.yarnpkg.com/boxen/-/boxen-5.1.2.tgz#788cb686fc83c1f486dfa8a40c68fc2b831d2b50"
@@ -2556,10 +2574,10 @@ content-disposition@0.5.4:
   dependencies:
     safe-buffer "5.2.1"
 
-content-type@~1.0.4:
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/content-type/-/content-type-1.0.4.tgz"
-  integrity sha512-hIP3EEPs8tB9AT1L+NUqtwOAps4mk2Zob89MWXMHjHWg9milF/j4osnnQLXBCBFBk/tvIG/tUc9mOUJiPBhPXA==
+content-type@~1.0.4, content-type@~1.0.5:
+  version "1.0.5"
+  resolved "https://registry.npmjs.org/content-type/-/content-type-1.0.5.tgz"
+  integrity sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==
 
 convert-source-map@^1.6.0, convert-source-map@^1.7.0:
   version "1.8.0"
@@ -3203,7 +3221,7 @@ fastify-plugin@^4.0.0:
   resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-4.3.0.tgz#c6eaa87a7a0d6d1d16129e43e31d6bc1d8868e53"
   integrity sha512-M3+i368lV0OYTJ5TfClIoPKEKSOF7112iiPdwgfSR0gN98BjA1Nk+c6oBHtfcVt9KiMxl+EQKHC1QNWo3ZOpYQ==
 
-fastify@4.13.0:
+fastify@^4.7.0, fastify@4.13.0:
   version "4.13.0"
   resolved "https://registry.yarnpkg.com/fastify/-/fastify-4.13.0.tgz#5726d4c63acae1b5e34c7643e233a0be8169009a"
   integrity sha512-p9ibdFWH3pZ7KPgmfHPKGUy2W4EWU2TEpwlcu58w4CwGyU3ARFfh2kwq6zpZ5W2ZGVbufi4tZbqHIHAlX/9Z/A==
@@ -4752,6 +4770,19 @@ ms@2.1.3, ms@^2.1.1, ms@^2.1.3:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
+multer@^1.4.5-lts.1:
+  version "1.4.5-lts.1"
+  resolved "https://registry.npmjs.org/multer/-/multer-1.4.5-lts.1.tgz"
+  integrity sha512-ywPWvcDMeH+z9gQq5qYHCCy+ethsk4goepZ45GLD63fOu0YcNecQxi64nDs3qluZB+murG3/D4dJ7+dGctcCQQ==
+  dependencies:
+    append-field "^1.0.0"
+    busboy "^1.0.0"
+    concat-stream "^1.5.2"
+    mkdirp "^0.5.4"
+    object-assign "^4.1.1"
+    type-is "^1.6.4"
+    xtend "^4.0.0"
+
 multer@1.4.4-lts.1:
   version "1.4.4-lts.1"
   resolved "https://registry.yarnpkg.com/multer/-/multer-1.4.4-lts.1.tgz#24100f701a4611211cfae94ae16ea39bb314e04d"
@@ -5102,6 +5133,11 @@ path-to-regexp@0.2.5:
   resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-0.2.5.tgz#0b426991e387fc4c675de23557f358715eb66fb0"
   integrity sha512-l6qtdDPIkmAmzEO6egquYDfqQGPMRNGjYtrU13HAXb3YSRrt7HSb1sJY0pKp6o2bAa86tSB6iwaW2JbthPKr7Q==
 
+path-to-regexp@0.2.5:
+  version "0.2.5"
+  resolved "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.2.5.tgz"
+  integrity sha512-l6qtdDPIkmAmzEO6egquYDfqQGPMRNGjYtrU13HAXb3YSRrt7HSb1sJY0pKp6o2bAa86tSB6iwaW2JbthPKr7Q==
+
 path-to-regexp@3.2.0:
   version "3.2.0"
   resolved "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-3.2.0.tgz"
@@ -5416,6 +5452,16 @@ raw-body@2.5.1:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/raw-body/-/raw-body-2.5.1.tgz#fe1b1628b181b700215e5fd42389f98b71392857"
   integrity sha512-qqJBtEyVgS0ZmPGdCFPWJ3FreoqvG4MVQln/kCgF7Olq95IbOp0/BWyMwbdtn4VTvkM8Y7khCQ2Xgk/tcrCXig==
+  dependencies:
+    bytes "3.1.2"
+    http-errors "2.0.0"
+    iconv-lite "0.4.24"
+    unpipe "1.0.0"
+
+raw-body@2.5.2:
+  version "2.5.2"
+  resolved "https://registry.npmjs.org/raw-body/-/raw-body-2.5.2.tgz"
+  integrity sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==
   dependencies:
     bytes "3.1.2"
     http-errors "2.0.0"
@@ -6210,6 +6256,11 @@ tslib@^2.1.0:
   version "2.3.1"
   resolved "https://registry.npmjs.org/tslib/-/tslib-2.3.1.tgz"
   integrity sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==
+
+tslib@2.5.3:
+  version "2.5.3"
+  resolved "https://registry.npmjs.org/tslib/-/tslib-2.5.3.tgz"
+  integrity sha512-mSxlJJwl3BMEQCUNnxXBU9jP4JBktcEGhURcPR6VQVlnP0FdDEsIaz0C35dXNGLyRfrATNofF0F5p2KPxQgB+w==
 
 tsutils@^3.21.0:
   version "3.21.0"
