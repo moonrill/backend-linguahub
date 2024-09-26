@@ -1,5 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Coupon } from 'src/coupon/coupon.entity';
+import { Coupon } from '#/coupon/entities/coupon.entity';
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Event {
@@ -8,17 +16,17 @@ export class Event {
 
   @Column({ nullable: false, default: 'Untitled Event' })
   name: string;
-    
+
   @Column({ nullable: true })
   description: string;
-  
+
   @Column({ nullable: true })
   start_date: string;
 
   @Column({ nullable: true })
   end_date: string;
 
-  @Column('text',{ nullable: true } )
+  @Column('text', { nullable: true })
   poster: string;
 
   @CreateDateColumn()
@@ -27,6 +35,9 @@ export class Event {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToMany(() => Coupon, coupon => coupon.event)
-  coupons: Coupon[]; 
+  @DeleteDateColumn()
+  deleted_at: Date;
+
+  @OneToMany(() => Coupon, (coupon) => coupon.event)
+  coupons: Coupon[];
 }

@@ -1,14 +1,19 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { Event } from 'src/event/event.entity';
+import { Event } from '#/event/entities/event.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Coupon {
-
-
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Event, event => event.coupons, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Event, (event) => event.coupons, { onDelete: 'CASCADE' })
   event: Event;
 
   @Column({ length: 255 })

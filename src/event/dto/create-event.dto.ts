@@ -1,4 +1,4 @@
-import { IsString, IsDateString, IsNotEmpty } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateEventDto {
   @IsNotEmpty()
@@ -16,7 +16,4 @@ export class CreateEventDto {
   @IsNotEmpty()
   @IsDateString()
   end_date: string;
-
-  // @IsString()
-  poster: string;
 }
