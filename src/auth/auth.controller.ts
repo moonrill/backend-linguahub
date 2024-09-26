@@ -7,12 +7,14 @@ import {
   Get,
   HttpStatus,
   Post,
+  Put,
   Request,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from './strategies/public.strategy';
 
@@ -68,6 +70,21 @@ export class AuthController {
       data: req.user,
       statusCode: HttpStatus.OK,
       message: 'Success get profile',
+    };
+  }
+
+  @Put('change-password')
+  async changePassword(
+    @Request() req,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return {
+      data: await this.authService.changePassword(
+        req.user.id,
+        changePasswordDto,
+      ),
+      statusCode: HttpStatus.OK,
+      message: 'Success change password',
     };
   }
 }
