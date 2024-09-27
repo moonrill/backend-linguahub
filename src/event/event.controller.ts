@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateEventDto } from './dto/create-event.dto';
-import { EventStatusDto } from './dto/status.dto';
+import { EventQueryDto } from './dto/query.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { EventService } from './event.service';
 
@@ -60,11 +60,11 @@ export class EventController {
   @Get()
   async findAll(
     @Query() paginationDto: PaginationDto,
-    @Query() eventStatusDto: EventStatusDto,
+    @Query() eventQueryDto: EventQueryDto,
   ) {
     const result = await this.eventService.findAll(
       paginationDto,
-      eventStatusDto,
+      eventQueryDto,
     );
 
     return {

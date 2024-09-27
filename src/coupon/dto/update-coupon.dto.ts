@@ -1,26 +1,6 @@
-import { IsNotEmpty, IsString, IsDate, IsEnum, IsInt } from 'class-validator';
+import { OmitType, PartialType } from '@nestjs/swagger';
+import { CreateCouponDto } from './create-coupon.dto';
 
-export class UpdateCouponDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-
-  @IsNotEmpty()
-  @IsString()
-  description: string;
-
-  @IsEnum(['Active', 'Inactive'])
-  status: string;
-
-  @IsNotEmpty()
-  @IsString()
-  expired_at: String;
-
-  @IsNotEmpty()
-  @IsInt()
-  discount_percentage: number;
-
-  @IsNotEmpty()
-  @IsString()
-  eventId: string;
-}
+export class UpdateCouponDto extends PartialType(
+  OmitType(CreateCouponDto, ['eventId', 'status'] as const),
+) {}

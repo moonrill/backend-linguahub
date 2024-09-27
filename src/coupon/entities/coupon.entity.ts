@@ -2,38 +2,69 @@ import { Event } from '#/event/entities/event.entity';
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
+export enum CouponStatus {
+  ACTIVE = 'Active',
+  INACTIVE = 'Inactive',
+}
+
 @Entity()
 export class Coupon {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Event, (event) => event.coupons, { onDelete: 'CASCADE' })
-  event: Event;
-
-  @Column({ length: 255 })
+  @Column()
   name: string;
 
   @Column('text')
   description: string;
 
-  @Column('enum', { enum: ['Active', 'Inactive'], default: 'Active' })
+  @Column({
+    type: 'enum',
+    enum: CouponStatus,
+    default: CouponStatus.ACTIVE,
+  })
   status: string;
 
-  @Column('date')
-  expired_at: Date;
+  @Column({
+    name: 'expired_at',
+    type: 'timestamp with time zone',
+  })
+  expiredAt: Date;
 
-  @Column('int')
-  discount_percentage: number;
+  @Column({
+    name: 'discount_percentage',
+    type: 'int',
+  })
+  discountPercentage: number;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamp with time zone',
+    nullable: false,
+  })
+  createdAt: Date;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'timestamp with time zone',
+    nullable: false,
+  })
+  updatedAt: Date;
+
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  deletedAt: Date;
+
+  @ManyToOne(() => Event, (event) => event.coupons, { onDelete: 'CASCADE' })
+  event: Event;
 }

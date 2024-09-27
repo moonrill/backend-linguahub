@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, LessThan, MoreThan, Repository } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
-import { EventStatus, EventStatusDto } from './dto/status.dto';
+import { EventQueryDto, EventStatus } from './dto/query.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Event } from './entities/event.entity';
 
@@ -17,33 +17,37 @@ export class EventService {
   ) {}
 
   async create(createEventDto: CreateEventDto, poster: Express.Multer.File) {
-    const entity = new Event();
+    try {
+      const entity = new Event();
 
-    entity.name = createEventDto.name;
-    entity.description = createEventDto.description;
-    entity.startDate = createEventDto.startDate;
-    entity.endDate = createEventDto.endDate;
+      entity.name = createEventDto.name;
+      entity.description = createEventDto.description;
+      entity.startDate = createEventDto.startDate;
+      entity.endDate = createEventDto.endDate;
 
-    const baseUrl = this.configService.get<string>('BASE_URL');
-    entity.poster = `${baseUrl}/images/poster/${poster.filename}`;
+      const baseUrl = this.configService.get<string>('BASE_URL');
+      entity.poster = `${baseUrl}/images/poster/${poster.filename}`;
 
-    const result = await this.eventRepository.insert(entity);
+      const result = await this.eventRepository.insert(entity);
 
-    return this.eventRepository.findOneOrFail({
-      where: {
-        id: result.identifiers[0].id,
-      },
-    });
+      return this.eventRepository.findOneOrFail({
+        where: {
+          id: result.identifiers[0].id,
+        },
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 
-  async findAll(paginationDto: PaginationDto, eventStatusDto: EventStatusDto) {
+  async findAll(paginationDto: PaginationDto, eventQueryDto: EventQueryDto) {
     try {
       const { page, limit } = paginationDto;
       const currentDate = new Date();
 
       let whereClause = {};
 
-      switch (eventStatusDto.status) {
+      switch (eventQueryDto.status) {
         case EventStatus.ONGOING:
           whereClause = {
             startDate: LessThan(currentDate),

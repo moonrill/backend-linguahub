@@ -359,6 +359,7 @@ export class TranslatorService {
         total,
         page,
         totalPages,
+        limit,
       };
     } catch (error) {
       throw error;
