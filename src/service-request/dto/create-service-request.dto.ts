@@ -1,5 +1,5 @@
-import { IsAfterStartTime } from '#/utils/is-after-start-time.decorator';
-import { IsFutureDate } from '#/utils/is-future-date.decorator';
+import { IsAfterStart } from '#/utils/is-after-start.decorator';
+import { IsTodayOrFutureDate } from '#/utils/is-today-or-future-date.decorator';
 import { Type } from 'class-transformer';
 import {
   IsDate,
@@ -26,7 +26,7 @@ export class CreateServiceRequestDto {
   @IsNotEmpty()
   @IsDate()
   @Type(() => Date)
-  @IsFutureDate({ message: 'Booking date must be in the future' })
+  @IsTodayOrFutureDate()
   bookingDate: Date;
 
   @IsNotEmpty()
@@ -39,7 +39,7 @@ export class CreateServiceRequestDto {
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
     message: 'endAt must be in the format HH:mm (e.g., 11:00)',
   })
-  @IsAfterStartTime('startAt', { message: 'endAt must be after startAt' })
+  @IsAfterStart('startAt')
   endAt: string;
 
   @IsNotEmpty()

@@ -31,10 +31,10 @@ import { RolesGuard } from './guards/roles.guard';
   ],
   controllers: [AuthController],
   providers: [
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: JwtAuthGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: RolesGuard,

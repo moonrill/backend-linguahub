@@ -20,23 +20,35 @@ export class Event {
   @Column({ nullable: true })
   description: string;
 
-  @Column({ nullable: true })
-  start_date: string;
+  @Column({ name: 'start_date', type: 'timestamp with time zone' })
+  startDate: Date;
 
-  @Column({ nullable: true })
-  end_date: string;
+  @Column({ name: 'end_date', type: 'timestamp with time zone' })
+  endDate: Date;
 
   @Column('text', { nullable: true })
   poster: string;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamp with time zone',
+    nullable: false,
+  })
+  createdAt: Date;
 
-  @UpdateDateColumn()
-  updated_at: Date;
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'timestamp with time zone',
+    nullable: false,
+  })
+  updatedAt: Date;
 
-  @DeleteDateColumn()
-  deleted_at: Date;
+  @DeleteDateColumn({
+    name: 'deleted_at',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  deletedAt: Date;
 
   @OneToMany(() => Coupon, (coupon) => coupon.event)
   coupons: Coupon[];

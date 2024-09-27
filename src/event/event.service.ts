@@ -2,8 +2,9 @@ import { PaginationDto } from '#/utils/pagination.dto';
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityNotFoundError, Repository } from 'typeorm';
+import { EntityNotFoundError, LessThan, MoreThan, Repository } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
+import { EventStatus, EventStatusDto } from './dto/status.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Event } from './entities/event.entity';
 
@@ -20,8 +21,8 @@ export class EventService {
 
     entity.name = createEventDto.name;
     entity.description = createEventDto.description;
-    entity.start_date = createEventDto.start_date;
-    entity.end_date = createEventDto.end_date;
+    entity.startDate = createEventDto.startDate;
+    entity.endDate = createEventDto.endDate;
 
     const baseUrl = this.configService.get<string>('BASE_URL');
     entity.poster = `${baseUrl}/images/poster/${poster.filename}`;
@@ -35,13 +36,34 @@ export class EventService {
     });
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto, eventStatusDto: EventStatusDto) {
     try {
       const { page, limit } = paginationDto;
+      const currentDate = new Date();
+
+      let whereClause = {};
+
+      switch (eventStatusDto.status) {
+        case EventStatus.ONGOING:
+          whereClause = {
+            startDate: LessThan(currentDate),
+            endDate: MoreThan(currentDate),
+          };
+          break;
+        case EventStatus.UPCOMING:
+          whereClause = { startDate: MoreThan(currentDate) };
+          break;
+        case EventStatus.PAST:
+          whereClause = { endDate: LessThan(currentDate) };
+          break;
+      }
+
       const [data, total] = await this.eventRepository.findAndCount({
+        where: whereClause,
         skip: (page - 1) * limit,
         take: limit,
         relations: ['coupons'],
+        order: { startDate: 'ASC' },
       });
 
       const totalPages = Math.ceil(total / limit);
@@ -86,8 +108,8 @@ export class EventService {
 
     newEvent.name = updateEventDto.name;
     newEvent.description = updateEventDto.description;
-    newEvent.start_date = updateEventDto.start_date;
-    newEvent.end_date = updateEventDto.end_date;
+    newEvent.startDate = updateEventDto.startDate;
+    newEvent.endDate = updateEventDto.endDate;
 
     if (poster) {
       const baseUrl = this.configService.get<string>('BASE_URL');

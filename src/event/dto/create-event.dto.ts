@@ -1,3 +1,5 @@
+import { IsAfterStart } from '#/utils/is-after-start.decorator';
+import { IsTodayOrFutureDate } from '#/utils/is-today-or-future-date.decorator';
 import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateEventDto {
@@ -11,9 +13,11 @@ export class CreateEventDto {
 
   @IsNotEmpty()
   @IsDateString()
-  start_date: string;
+  @IsTodayOrFutureDate()
+  startDate: Date;
 
   @IsNotEmpty()
   @IsDateString()
-  end_date: string;
+  @IsAfterStart('startDate')
+  endDate: Date;
 }
