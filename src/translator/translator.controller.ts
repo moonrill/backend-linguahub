@@ -1,15 +1,20 @@
+import { Role } from '#/auth/role.enum';
+import { Roles } from '#/auth/roles.decorator';
 import { Public } from '#/auth/strategies/public.strategy';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
+  Body,
   Controller,
   Get,
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Query,
 } from '@nestjs/common';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import { SearchTranslatorDto } from './dto/search-translator.dto';
+import { TranslatorStatus } from './entities/translator.entity';
 import { TranslatorService } from './translator.service';
 
 @Controller('translators')
@@ -70,6 +75,36 @@ export class TranslatorController {
       data: await this.translatorService.findById(id),
       statusCode: HttpStatus.OK,
       message: 'Success get translator by id',
+    };
+  }
+
+  @Roles(Role.ADMIN)
+  @Patch('/approve/:id')
+  async approve(@Param('id', new ParseUUIDPipe()) id: string) {
+    return {
+      data: await this.translatorService.updateTranslatorStatus(
+        id,
+        TranslatorStatus.APPROVED,
+      ),
+      statusCode: HttpStatus.OK,
+      message: 'Success approve translator',
+    };
+  }
+
+  @Roles(Role.ADMIN)
+  @Patch('/reject/:id')
+  async reject(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body('reason') reason: string,
+  ) {
+    return {
+      data: await this.translatorService.updateTranslatorStatus(
+        id,
+        TranslatorStatus.REJECTED,
+        reason,
+      ),
+      statusCode: HttpStatus.OK,
+      message: 'Success reject translator',
     };
   }
 }

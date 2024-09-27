@@ -14,6 +14,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserCoupons } from './user-coupons.entity';
 import { UserDetail } from './user-detail.entity';
 
 @Entity()
@@ -69,4 +70,7 @@ export class User {
 
   @OneToMany(() => Booking, (booking) => booking.user)
   bookings: Booking[];
+
+  @OneToMany(() => UserCoupons, (userCoupons) => userCoupons.user)
+  userCoupons: UserCoupons[];
 }

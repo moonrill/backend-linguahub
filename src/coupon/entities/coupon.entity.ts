@@ -1,10 +1,12 @@
 import { Event } from '#/event/entities/event.entity';
+import { UserCoupons } from '#/users/entities/user-coupons.entity';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -67,4 +69,7 @@ export class Coupon {
 
   @ManyToOne(() => Event, (event) => event.coupons, { onDelete: 'CASCADE' })
   event: Event;
+
+  @OneToMany(() => UserCoupons, (userCoupon) => userCoupon.coupon)
+  userCoupons: UserCoupons[];
 }

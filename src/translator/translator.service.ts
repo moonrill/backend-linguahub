@@ -5,6 +5,8 @@ import { Translator } from '#/translator/entities/translator.entity';
 import { User } from '#/users/entities/user.entity';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
+  BadRequestException,
+  ConflictException,
   forwardRef,
   Inject,
   Injectable,
@@ -416,6 +418,43 @@ export class TranslatorService {
         totalPages,
         limit,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateTranslatorStatus(
+    id: string,
+    status: TranslatorStatus,
+    reason?: string,
+  ) {
+    try {
+      const translator = await this.findById(id);
+
+      if (translator.status !== TranslatorStatus.PENDING) {
+        throw new ConflictException('Translator already approved or rejected');
+      }
+
+      if (status === TranslatorStatus.REJECTED && !reason) {
+        throw new BadRequestException('Reason is required for rejection');
+      }
+
+      // Update the status and set the rejection reason if applicable
+      const translatorEntity = new Translator();
+      translatorEntity.status = status;
+
+      if (status === TranslatorStatus.REJECTED) {
+        translatorEntity.rejectionReason = reason;
+      }
+
+      await this.translatorRepository.update(id, translatorEntity);
+
+      // TODO: Send email notification based on status (approved or rejected)
+
+      return this.translatorRepository.findOneOrFail({
+        where: { id },
+        relations: ['user.userDetail'],
+      });
     } catch (error) {
       throw error;
     }
