@@ -1,6 +1,7 @@
 import { LanguageService } from '#/language/language.service';
 import { ServiceStatus } from '#/service/entities/service.entity';
 import { SpecializationService } from '#/specialization/specialization.service';
+import { Translator } from '#/translator/entities/translator.entity';
 import { User } from '#/users/entities/user.entity';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
@@ -13,13 +14,14 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityManager, EntityNotFoundError, Repository } from 'typeorm';
 import { CreateTranslatorDto } from './dto/create-translator.dto';
+import { RegistrationQueryDto } from './dto/registration-query.dto';
 import {
   SearchTranslatorDto,
   TranslatorSortBy,
 } from './dto/search-translator.dto';
 import { TranslatorLanguages } from './entities/translator-languages.entity';
 import { TranslatorSpecializations } from './entities/translator-specializations.entity';
-import { Translator, TranslatorStatus } from './entities/translator.entity';
+import { TranslatorStatus } from './entities/translator.entity';
 
 @Injectable()
 export class TranslatorService {
@@ -184,6 +186,7 @@ export class TranslatorService {
           'user.userDetail',
           'translatorLanguages.language',
           'translatorSpecializations.specialization',
+          'reviews',
         ],
       });
 
@@ -206,13 +209,8 @@ export class TranslatorService {
   }
 
   destructTranslator(translator: Translator) {
-    const {
-      translatorLanguages,
-      translatorSpecializations,
-      reviews,
-      user,
-      ...detail
-    } = translator;
+    const { translatorLanguages, translatorSpecializations, user, ...detail } =
+      translator;
 
     const languages = translatorLanguages.map((tl) => ({
       name: tl.language.name,
@@ -228,22 +226,11 @@ export class TranslatorService {
 
     const translatorDetail = { email, ...restUserDetail, ...detail };
 
-    const reviewsData = reviews.map((review) => {
-      const { user, ...restReview } = review;
-      return {
-        ...restReview,
-        user: {
-          fullName: user.userDetail.fullName,
-          profileImage: user.userDetail.profilePicture,
-        },
-      };
-    });
-
     return {
       ...translatorDetail,
       languages,
       specializations,
-      reviews: reviewsData,
+      reviewsCount: translator.reviews.length,
     };
   }
 
@@ -264,9 +251,21 @@ export class TranslatorService {
         ],
       });
 
-      const destructedTranslator = this.destructTranslator(data);
+      const reviewsData = data.reviews.map((review) => {
+        const { user, ...restReview } = review;
+        return {
+          ...restReview,
+          client: {
+            fullName: user.userDetail.fullName,
+            profileImage: user.userDetail.profilePicture,
+          },
+        };
+      });
 
-      return destructedTranslator;
+      const { reviews, ...destructedTranslator } =
+        this.destructTranslator(data);
+
+      return { ...destructedTranslator, reviews: reviewsData };
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Translator not found');
@@ -284,6 +283,7 @@ export class TranslatorService {
         skip: (page - 1) * limit,
         take: limit,
         where: {
+          status: TranslatorStatus.APPROVED,
           services: {
             status: ServiceStatus.ACTIVE,
             sourceLanguage: {
@@ -299,12 +299,14 @@ export class TranslatorService {
           'services',
           'services.sourceLanguage',
           'services.targetLanguage',
+          'translatorLanguages.language',
+          'translatorSpecializations.specialization',
           'reviews',
         ],
       });
 
       const translatorWithServices = data.map((translator) => {
-        const { services, reviews, ...detail } = translator;
+        const { services, ...detail } = translator;
         const relevantServices = services.filter(
           (service) =>
             service.sourceLanguage.id ===
@@ -312,28 +314,28 @@ export class TranslatorService {
             service.targetLanguage.id === searchTranslatorDto.targetLanguageId,
         );
 
-        // Calculate the review count
-        const reviewCount = reviews.length;
-
         return {
           ...detail,
-          reviewCount,
           services: relevantServices,
         };
       });
+
+      const destructuredTranslators = translatorWithServices.map((translator) =>
+        this.destructTranslator(translator),
+      );
 
       let sortedData = [];
 
       switch (searchTranslatorDto.sortBy) {
         case TranslatorSortBy.RATING:
-          sortedData = translatorWithServices.sort((a, b) => {
+          sortedData = destructuredTranslators.sort((a, b) => {
             if (a.rating > b.rating) return -1;
             if (a.rating < b.rating) return 1;
             return 0;
           });
           break;
         case TranslatorSortBy.PRICE:
-          sortedData = translatorWithServices.sort((a, b) => {
+          sortedData = destructuredTranslators.sort((a, b) => {
             const aMinPrice = Math.min(
               ...a.services.map((s) => s.pricePerHour),
             );
@@ -344,18 +346,71 @@ export class TranslatorService {
           });
           break;
         case TranslatorSortBy.MOST_REVIEWS:
-          sortedData = translatorWithServices.sort(
-            (a, b) => b.reviewCount - a.reviewCount,
+          sortedData = destructuredTranslators.sort(
+            (a, b) => b.reviewsCount - a.reviewsCount,
           );
           break;
         default:
-          sortedData = translatorWithServices;
+          sortedData = destructuredTranslators;
       }
 
       const totalPages = Math.ceil(total / limit);
 
+      const result = sortedData.map((translator) => {
+        const { services, reviews, ...rest } = translator;
+        return rest;
+      });
+
       return {
-        data: sortedData,
+        data: result,
+        total,
+        page,
+        totalPages,
+        limit,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRegistration(
+    paginationDto: PaginationDto,
+    registrationQueryDto: RegistrationQueryDto,
+  ) {
+    try {
+      const { page, limit } = paginationDto;
+
+      let whereClause = {};
+
+      switch (registrationQueryDto.status) {
+        case TranslatorStatus.APPROVED:
+          whereClause = {
+            status: TranslatorStatus.APPROVED,
+          };
+          break;
+        case TranslatorStatus.PENDING:
+          whereClause = {
+            status: TranslatorStatus.PENDING,
+          };
+          break;
+        case TranslatorStatus.REJECTED:
+          whereClause = {
+            status: TranslatorStatus.REJECTED,
+          };
+          break;
+      }
+
+      const [data, total] = await this.translatorRepository.findAndCount({
+        skip: (page - 1) * limit,
+        take: limit,
+        where: whereClause,
+        relations: ['user.userDetail'],
+      });
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data,
         total,
         page,
         totalPages,

@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   Query,
 } from '@nestjs/common';
+import { RegistrationQueryDto } from './dto/registration-query.dto';
 import { SearchTranslatorDto } from './dto/search-translator.dto';
 import { TranslatorService } from './translator.service';
 
@@ -42,6 +43,23 @@ export class TranslatorController {
       ...result,
       statusCode: HttpStatus.OK,
       message: 'Success search translator',
+    };
+  }
+
+  @Get('/registrations')
+  async registration(
+    @Query() paginationDto: PaginationDto,
+    @Query() registrationQueryDto: RegistrationQueryDto,
+  ) {
+    const result = await this.translatorService.getRegistration(
+      paginationDto,
+      registrationQueryDto,
+    );
+
+    return {
+      ...result,
+      statusCode: HttpStatus.OK,
+      message: 'Success get translator registration',
     };
   }
 

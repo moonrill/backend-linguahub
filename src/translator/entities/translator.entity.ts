@@ -78,6 +78,13 @@ export class Translator {
   })
   certificate: string;
 
+  @Column({
+    name: 'rejection_reason',
+    type: 'text',
+    nullable: true,
+  })
+  rejectionReason: string;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamp with time zone',
