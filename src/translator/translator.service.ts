@@ -1,4 +1,5 @@
 import { LanguageService } from '#/language/language.service';
+import { MailService } from '#/mail/mail.service';
 import { ServiceStatus } from '#/service/entities/service.entity';
 import { SpecializationService } from '#/specialization/specialization.service';
 import { Translator } from '#/translator/entities/translator.entity';
@@ -34,6 +35,7 @@ export class TranslatorService {
     private languageService: LanguageService,
     @Inject(forwardRef(() => SpecializationService))
     private specializationService: SpecializationService,
+    private mailService: MailService,
   ) {}
 
   private async getUser(
@@ -429,7 +431,10 @@ export class TranslatorService {
     reason?: string,
   ) {
     try {
-      const translator = await this.findById(id);
+      const translator = await this.translatorRepository.findOneOrFail({
+        where: { id },
+        relations: ['user.userDetail'],
+      });
 
       if (translator.status !== TranslatorStatus.PENDING) {
         throw new ConflictException('Translator already approved or rejected');
@@ -449,7 +454,11 @@ export class TranslatorService {
 
       await this.translatorRepository.update(id, translatorEntity);
 
-      // TODO: Send email notification based on status (approved or rejected)
+      await this.mailService.sendTranslatorRegistrationEmail(
+        translator,
+        status,
+        reason,
+      );
 
       return this.translatorRepository.findOneOrFail({
         where: { id },
