@@ -1,3 +1,5 @@
+import { Role } from '#/auth/role.enum';
+import { Roles } from '#/auth/roles.decorator';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   Body,
@@ -6,9 +8,11 @@ import {
   Get,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
+  Request,
 } from '@nestjs/common';
 import { CouponService } from './coupon.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
@@ -25,6 +29,19 @@ export class CouponController {
       data: await this.couponService.create(createCouponDto),
       statusCode: HttpStatus.CREATED,
       message: 'Success create coupon',
+    };
+  }
+
+  @Roles(Role.CLIENT)
+  @Post('claim/:id')
+  async claimCoupon(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Request() req,
+  ) {
+    return {
+      data: await this.couponService.claim(id, req.user.id),
+      statusCode: HttpStatus.OK,
+      message: 'Success claim coupon',
     };
   }
 
