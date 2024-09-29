@@ -107,9 +107,10 @@ export class CouponService {
 
   async update(id: string, updateCouponDto: UpdateCouponDto) {
     try {
-      const coupon = await this.findById(id);
+      await this.findById(id);
 
       const newCoupon = new Coupon();
+
       newCoupon.name = updateCouponDto.name;
       newCoupon.description = updateCouponDto.description;
       newCoupon.expiredAt = updateCouponDto.expiredAt;
@@ -129,7 +130,10 @@ export class CouponService {
 
       await this.couponRepository.softDelete(id);
 
-      return { statusCode: HttpStatus.OK, message: 'Success delete coupon' };
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Success delete coupon',
+      };
     } catch (error) {
       throw error;
     }
@@ -139,12 +143,7 @@ export class CouponService {
     try {
       const coupon = await this.findById(id);
 
-      if (
-        coupon.status !== CouponStatus.ACTIVE ||
-        coupon.event.endDate < new Date()
-      ) {
-        throw new GoneException('Coupon is no longer available.');
-      }
+      await this.checkCoupon(coupon, 'claim');
 
       const user = await this.userRepository.findOneOrFail({
         where: { id: userId },
@@ -182,6 +181,15 @@ export class CouponService {
       });
     } catch (error) {
       throw error;
+    }
+  }
+
+  checkCoupon(coupon: Coupon, type: 'claim' | 'use') {
+    if (
+      coupon.status === CouponStatus.INACTIVE ||
+      (type === 'claim' ? coupon.event.endDate : coupon.expiredAt) < new Date()
+    ) {
+      throw new GoneException('Coupon is no longer available.');
     }
   }
 }

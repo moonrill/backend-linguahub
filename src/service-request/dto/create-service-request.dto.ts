@@ -18,10 +18,9 @@ export class CreateServiceRequestDto {
   @IsUUID()
   serviceId: string;
 
-  // TODO: add coupon
-  // @IsOptional()
-  // @IsUUID()
-  // couponId: string;
+  @IsOptional()
+  @IsUUID()
+  couponId: string;
 
   @IsNotEmpty()
   @IsDate()

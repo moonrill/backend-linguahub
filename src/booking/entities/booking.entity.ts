@@ -1,3 +1,4 @@
+import { Coupon } from '#/coupon/entities/coupon.entity';
 import { Service } from '#/service/entities/service.entity';
 import { Translator } from '#/translator/entities/translator.entity';
 import { User } from '#/users/entities/user.entity';
@@ -128,6 +129,6 @@ export class Booking {
   service: Service;
 
   // TODO: add coupon
-  // @ManyToOne(() => Coupon, (coupon) => coupon.bookings)
-  // coupon: Coupon;
+  @ManyToOne(() => Coupon, (coupon) => coupon.bookings)
+  coupon: Coupon;
 }

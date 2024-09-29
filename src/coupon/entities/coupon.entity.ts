@@ -1,3 +1,4 @@
+import { Booking } from '#/booking/entities/booking.entity';
 import { Event } from '#/event/entities/event.entity';
 import { UserCoupons } from '#/users/entities/user-coupons.entity';
 import {
@@ -72,4 +73,7 @@ export class Coupon {
 
   @OneToMany(() => UserCoupons, (userCoupon) => userCoupon.coupon)
   userCoupons: UserCoupons[];
+
+  @OneToMany(() => Booking, (booking) => booking.coupon)
+  bookings: Booking[];
 }

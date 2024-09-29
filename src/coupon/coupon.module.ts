@@ -15,5 +15,6 @@ import { Coupon } from './entities/coupon.entity';
   ],
   providers: [CouponService],
   controllers: [CouponController],
+  exports: [CouponService],
 })
 export class CouponModule {}
