@@ -1,3 +1,5 @@
+import { Coupon } from '#/coupon/entities/coupon.entity';
+import { Event } from '#/event/entities/event.entity';
 import { Language } from '#/language/entities/language.entity';
 import { Role } from '#/role/entities/role.entity';
 import { Specialization } from '#/specialization/entities/specialization.entity';
@@ -8,6 +10,8 @@ import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
 import { EntityTarget } from 'typeorm/common/EntityTarget';
 import { ObjectLiteral } from 'typeorm/common/ObjectLiteral';
+import { couponMasterData } from './data/coupon';
+import { eventMasterData } from './data/event';
 import { languageMasterData } from './data/language';
 import { roleMasterData } from './data/role';
 import { specializationMasterData } from './data/specialization';
@@ -63,6 +67,7 @@ export class SeederService implements OnApplicationBootstrap {
         const hashedPassword = await bcrypt.hash(user.password, salt);
 
         const newUser = new User();
+
         newUser.email = user.email;
         newUser.password = hashedPassword;
         newUser.salt = salt;
@@ -75,11 +80,43 @@ export class SeederService implements OnApplicationBootstrap {
     }
   }
 
+  private async seedCoupons() {
+    const eventRepository = this.dataSource.getRepository(Event);
+    const couponRepository = this.dataSource.getRepository(Coupon);
+
+    for (const couponData of couponMasterData) {
+      const event = await eventRepository.findOne({
+        where: { id: couponData.event },
+      });
+
+      const coupon = new Coupon();
+
+      coupon.name = couponData.name;
+      coupon.description = couponData.description;
+      coupon.discountPercentage = couponData.discountPercentage;
+      coupon.status = couponData.status;
+      coupon.expiredAt = couponData.expiredAt;
+      coupon.event = event;
+
+      const existingCoupon = await couponRepository.findOne({
+        where: { name: coupon.name },
+      });
+
+      if (!existingCoupon) {
+        await couponRepository.insert(coupon);
+
+        this.logger.log(`Created coupon ${coupon.name}`);
+      }
+    }
+  }
+
   async seeder() {
     await this.insertIfNotExist(Role, roleMasterData);
     await this.insertIfNotExist(Language, languageMasterData);
     await this.insertIfNotExist(Specialization, specializationMasterData);
+    await this.insertIfNotExist(Event, eventMasterData);
     await this.seedUser();
+    await this.seedCoupons();
   }
 
   async onApplicationBootstrap() {
