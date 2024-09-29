@@ -1,13 +1,24 @@
 import { Booking, BookingStatus } from '#/booking/entities/booking.entity';
 import { CouponService } from '#/coupon/coupon.service';
 import { ServiceService } from '#/service/service.service';
-import { TranslatorService } from '#/translator/translator.service';
 import { UserCoupons } from '#/users/entities/user-coupons.entity';
 import { UsersService } from '#/users/users.service';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { PaginationDto } from '#/utils/pagination.dto';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, In, Repository } from 'typeorm';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
+import {
+  QueryServiceRequestDto,
+  ServiceRequestSortBy,
+  ServiceRequestStatus,
+} from './dto/query.dto';
 
 @Injectable()
 export class ServiceRequestService {
@@ -16,11 +27,67 @@ export class ServiceRequestService {
     private bookingRepository: Repository<Booking>,
     @InjectRepository(UserCoupons)
     private userCouponsRepository: Repository<UserCoupons>,
-    private translatorService: TranslatorService,
     private serviceService: ServiceService,
     private userService: UsersService,
     private couponService: CouponService,
   ) {}
+
+  async findAll(
+    paginationDto: PaginationDto,
+    queryDto: QueryServiceRequestDto,
+  ) {
+    try {
+      const { page, limit } = paginationDto;
+
+      const whereClause = {};
+
+      if (queryDto.status) {
+        whereClause['status'] = queryDto.status;
+      } else {
+        whereClause['status'] = In([
+          ServiceRequestStatus.PENDING,
+          ServiceRequestStatus.CANCELLED,
+          ServiceRequestStatus.REJECTED,
+        ]);
+      }
+
+      const orderBy = {};
+
+      switch (queryDto.sortBy) {
+        case ServiceRequestSortBy.DATE:
+          orderBy['createdAt'] = queryDto.order;
+          break;
+        case ServiceRequestSortBy.PRICE:
+          orderBy['totalPrice'] = queryDto.order;
+          break;
+      }
+
+      const [data, total] = await this.bookingRepository.findAndCount({
+        where: whereClause,
+        relations: [
+          'translator.user.userDetail',
+          'user.userDetail',
+          'service.sourceLanguage',
+          'service.targetLanguage',
+        ],
+        order: orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data,
+        total,
+        page,
+        totalPages,
+        limit,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 
   async create(
     userId: string,
@@ -142,5 +209,55 @@ export class ServiceRequestService {
     const [hours, minutes] = time.split(':').map(Number);
 
     return hours + minutes / 60;
+  }
+
+  async findById(id: string) {
+    try {
+      const data = await this.bookingRepository.findOneOrFail({
+        where: { id },
+        relations: [
+          'translator.user.userDetail',
+          'translator.translatorLanguages.language',
+          'service.sourceLanguage',
+          'service.targetLanguage',
+          'coupon',
+          'user.userDetail',
+        ],
+      });
+
+      return data;
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Service request not found');
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  async cancelRequest(id: string, userId: string) {
+    try {
+      const serviceRequest = await this.findById(id);
+
+      if (serviceRequest.user.id !== userId) {
+        throw new UnauthorizedException('Unauthorized user');
+      }
+
+      if (serviceRequest.status === BookingStatus.CANCELLED) {
+        throw new BadRequestException('Service request already cancelled');
+      }
+
+      await this.bookingRepository.update(
+        { id },
+        { status: BookingStatus.CANCELLED },
+      );
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Success cancel service request',
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

@@ -128,7 +128,6 @@ export class Booking {
   @ManyToOne(() => Service, (service) => service.bookings)
   service: Service;
 
-  // TODO: add coupon
   @ManyToOne(() => Coupon, (coupon) => coupon.bookings)
   coupon: Coupon;
 }
