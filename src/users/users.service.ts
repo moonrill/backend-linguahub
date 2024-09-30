@@ -1,3 +1,4 @@
+import { CouponStatus } from '#/coupon/entities/coupon.entity';
 import { Role } from '#/role/entities/role.entity';
 import { RoleService } from '#/role/role.service';
 import { TranslatorService } from '#/translator/translator.service';
@@ -14,10 +15,18 @@ import {
   DataSource,
   EntityManager,
   EntityNotFoundError,
+  LessThanOrEqual,
+  MoreThanOrEqual,
   Repository,
 } from 'typeorm';
+import {
+  CouponSortBy,
+  UserCouponsQueryDto,
+  UserCouponStatus,
+} from './dto/coupon.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserCoupons } from './entities/user-coupons.entity';
 import { UserDetail } from './entities/user-detail.entity';
 import { User } from './entities/user.entity';
 
@@ -33,6 +42,8 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(UserDetail)
     private userDetailRepository: Repository<UserDetail>,
+    @InjectRepository(UserCoupons)
+    private userCouponsRepository: Repository<UserCoupons>,
     private roleService: RoleService,
     private translatorService: TranslatorService,
     private dataSource: DataSource,
@@ -265,5 +276,81 @@ export class UsersService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async getUserCoupons(
+    userId: string,
+    paginationDto: PaginationDto,
+    userCouponsQueryDto: UserCouponsQueryDto,
+  ) {
+    try {
+      const user = await this.findById(userId);
+
+      const { page, limit } = paginationDto;
+      const { status, sortBy, order } = userCouponsQueryDto;
+
+      const whereClause = {
+        user: {
+          id: user.id,
+        },
+      };
+
+      switch (status) {
+        case UserCouponStatus.AVAILABLE:
+          whereClause['isUsed'] = false;
+          whereClause['coupon'] = {
+            expiredAt: MoreThanOrEqual(new Date()),
+          };
+          break;
+        case UserCouponStatus.USED:
+          whereClause['isUsed'] = true;
+          break;
+        case UserCouponStatus.EXPIRED:
+          whereClause['isUsed'] = false;
+          whereClause['coupon'] = {
+            expiredAt: LessThanOrEqual(new Date()),
+          };
+          break;
+        case UserCouponStatus.UNAVAILABLE:
+          whereClause['isUsed'] = false;
+          whereClause['coupon'] = {
+            status: CouponStatus.INACTIVE,
+          };
+          break;
+      }
+
+      const orderBy = {};
+
+      switch (sortBy) {
+        case CouponSortBy.EXPIRED_DATE:
+          orderBy['coupon'] = {
+            expiredAt: order,
+          };
+          break;
+        case CouponSortBy.DISCOUNT_PERCENTAGE:
+          orderBy['coupon'] = {
+            discountPercentage: order,
+          };
+          break;
+      }
+
+      const [data, total] = await this.userCouponsRepository.findAndCount({
+        where: whereClause,
+        order: orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+        relations: ['coupon'],
+      });
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data,
+        total,
+        page,
+        totalPages,
+        limit,
+      };
+    } catch (error) {}
   }
 }

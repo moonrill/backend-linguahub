@@ -46,7 +46,7 @@ export class MailService {
       await this.mailService.sendMail({
         subject,
         // TODO: Change this
-        // to: translator.user.email,
+        // to: serviceRequest.user.email,
         to: 'arilramadani245@gmail.com',
         template: 'service-request',
         context: {

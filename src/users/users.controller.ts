@@ -1,3 +1,5 @@
+import { Role } from '#/auth/role.enum';
+import { Roles } from '#/auth/roles.decorator';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   Body,
@@ -9,7 +11,9 @@ import {
   ParseUUIDPipe,
   Put,
   Query,
+  Request,
 } from '@nestjs/common';
+import { UserCouponsQueryDto } from './dto/coupon.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
@@ -27,6 +31,34 @@ export class UsersController {
       message: 'Success get all users',
     };
   }
+
+  @Roles(Role.CLIENT)
+  @Get('coupons')
+  async getCoupons(
+    @Request() req,
+    @Query() paginationDto: PaginationDto,
+    @Query() userCouponsQueryDto: UserCouponsQueryDto,
+  ) {
+    const result = await this.usersService.getUserCoupons(
+      req.user.id,
+      paginationDto,
+      userCouponsQueryDto,
+    );
+
+    return {
+      ...result,
+      statusCode: HttpStatus.OK,
+      message: 'Success get user coupons',
+    };
+  }
+
+  @Roles(Role.CLIENT)
+  @Get('service-requests')
+  async getServiceRequests(@Request() req) {}
+
+  @Roles(Role.CLIENT)
+  @Get('bookings')
+  async getBookings(@Request() req) {}
 
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
