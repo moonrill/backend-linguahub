@@ -9,7 +9,7 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
-  Patch,
+  Put,
   Query,
 } from '@nestjs/common';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
@@ -79,7 +79,7 @@ export class TranslatorController {
   }
 
   @Roles(Role.ADMIN)
-  @Patch('/approve/:id')
+  @Put(':id/approve')
   async approve(@Param('id', new ParseUUIDPipe()) id: string) {
     return {
       data: await this.translatorService.updateTranslatorStatus(
@@ -92,7 +92,7 @@ export class TranslatorController {
   }
 
   @Roles(Role.ADMIN)
-  @Patch('/reject/:id')
+  @Put(':id/reject')
   async reject(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body('reason') reason: string,

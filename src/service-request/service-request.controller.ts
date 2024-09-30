@@ -16,6 +16,7 @@ import {
 } from '@nestjs/common';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
 import { QueryServiceRequestDto } from './dto/query.dto';
+import { RejectServiceRequestDto } from './dto/reject.dto';
 import { UpdateServiceRequestDto } from './dto/update-service-request.dto';
 import { ServiceRequestService } from './service-request.service';
 
@@ -81,6 +82,23 @@ export class ServiceRequestController {
       statusCode: HttpStatus.OK,
       message: 'Success update service request',
     };
+  }
+
+  @Roles(Role.TRANSLATOR)
+  @Put(':id/approve')
+  async approve(@Param('id', new ParseUUIDPipe()) id: string, @Request() req) {
+    return await this.serviceRequestService.approve(id, req.user.id);
+  }
+
+  @Roles(Role.TRANSLATOR)
+  @Put(':id/reject')
+  async reject(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Request() req,
+    @Body() rejectDto: RejectServiceRequestDto,
+  ) {
+    const { reason } = rejectDto;
+    return await this.serviceRequestService.reject(id, req.user.id, reason);
   }
 
   @Roles(Role.CLIENT)

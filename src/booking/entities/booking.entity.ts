@@ -101,6 +101,12 @@ export class Booking {
   })
   rejectionReason: string;
 
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  proof: string;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamp with time zone',

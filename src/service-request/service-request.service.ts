@@ -391,4 +391,64 @@ export class ServiceRequestService {
       throw error;
     }
   }
+
+  async checkServiceRequest(id: string, translatorId: string) {
+    try {
+      const serviceRequest = await this.findById(id);
+
+      if (serviceRequest.translator.id !== translatorId) {
+        throw new UnauthorizedException(
+          'You are not authorized to approve this service request',
+        );
+      }
+
+      if (serviceRequest.status !== BookingStatus.PENDING) {
+        throw new BadRequestException(
+          'Only pending service request can be approved',
+        );
+      }
+
+      return serviceRequest;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async approve(id: string, userId: string) {
+    try {
+      const translator = await this.translatorService.findByUserId(userId);
+      await this.checkServiceRequest(id, translator.id);
+
+      await this.bookingRepository.update(
+        { id },
+        { status: BookingStatus.UNPAID },
+      );
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Success approve service request',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async reject(id: string, userId: string, reason: string) {
+    try {
+      const translator = await this.translatorService.findByUserId(userId);
+      await this.checkServiceRequest(id, translator.id);
+
+      await this.bookingRepository.update(
+        { id },
+        { status: BookingStatus.REJECTED, rejectionReason: reason },
+      );
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Success reject service request',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 }
