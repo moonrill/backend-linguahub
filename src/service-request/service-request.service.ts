@@ -19,6 +19,7 @@ import {
   ServiceRequestSortBy,
   ServiceRequestStatus,
 } from './dto/query.dto';
+import { UpdateServiceRequestDto } from './dto/update-service-request.dto';
 
 @Injectable()
 export class ServiceRequestService {
@@ -157,7 +158,7 @@ export class ServiceRequestService {
 
         const discountAmount = (coupon.discountPercentage / 100) * totalPrice;
 
-        await this.markCouponAsUsed(userCoupon);
+        await this.markCoupon(userCoupon, 'used');
 
         newServiceRequest.discountAmount = discountAmount;
         newServiceRequest.coupon = coupon;
@@ -188,10 +189,10 @@ export class ServiceRequestService {
     }
   }
 
-  private async markCouponAsUsed(userCoupon: UserCoupons) {
+  private async markCoupon(userCoupon: UserCoupons, as: 'used' | 'unused') {
     const userCouponEntity = new UserCoupons();
 
-    userCouponEntity.isUsed = true;
+    userCouponEntity.isUsed = as === 'used';
     await this.userCouponsRepository.update(userCoupon.id, userCouponEntity);
   }
 
@@ -232,6 +233,113 @@ export class ServiceRequestService {
       } else {
         throw error;
       }
+    }
+  }
+
+  async update(
+    id: string,
+    userId: string,
+    updateServiceRequestDto: UpdateServiceRequestDto,
+  ) {
+    try {
+      const serviceRequest = await this.findById(id);
+
+      if (serviceRequest.user.id !== userId) {
+        throw new UnauthorizedException('Unauthorized user');
+      }
+
+      if (serviceRequest.status !== BookingStatus.PENDING) {
+        throw new BadRequestException(
+          'Sorry you cant update this service request',
+        );
+      }
+
+      const newServiceRequest = new Booking();
+
+      newServiceRequest.bookingDate = updateServiceRequestDto.bookingDate;
+      newServiceRequest.startAt = updateServiceRequestDto.startAt;
+      newServiceRequest.endAt = updateServiceRequestDto.endAt;
+      newServiceRequest.location = updateServiceRequestDto.location;
+      newServiceRequest.notes = updateServiceRequestDto.notes;
+      newServiceRequest.duration = this.calculateDuration(
+        updateServiceRequestDto.startAt,
+        updateServiceRequestDto.endAt,
+      );
+
+      if (updateServiceRequestDto.serviceId) {
+        const service = await this.serviceService.findById(
+          updateServiceRequestDto.serviceId,
+        );
+
+        if (service.translator.id !== serviceRequest.translator.id) {
+          throw new BadRequestException('Translator and service not match');
+        }
+
+        newServiceRequest.service = service;
+        newServiceRequest.serviceFee =
+          service.pricePerHour * newServiceRequest.duration;
+        newServiceRequest.systemFee = 0.1 * newServiceRequest.serviceFee;
+      }
+
+      let totalPrice =
+        newServiceRequest.serviceFee + newServiceRequest.systemFee;
+
+      if (updateServiceRequestDto.couponId) {
+        // Handle Old Coupon first
+        const { coupon: oldCoupon } = serviceRequest;
+
+        if (oldCoupon) {
+          const oldUserCoupon = await this.userCouponsRepository.findOne({
+            where: {
+              user: {
+                id: userId,
+              },
+              coupon: {
+                id: oldCoupon.id,
+              },
+            },
+          });
+
+          await this.markCoupon(oldUserCoupon, 'unused');
+        }
+
+        const coupon = await this.couponService.findById(
+          updateServiceRequestDto.couponId,
+        );
+
+        const userCoupon = await this.userCouponsRepository.findOne({
+          where: {
+            user: {
+              id: userId,
+            },
+            coupon: {
+              id: coupon.id,
+            },
+          },
+        });
+
+        this.validateUserCoupon(userCoupon);
+
+        this.couponService.checkCoupon(coupon, 'use');
+
+        const discountAmount = (coupon.discountPercentage / 100) * totalPrice;
+
+        await this.markCoupon(userCoupon, 'used');
+
+        newServiceRequest.discountAmount = discountAmount;
+        newServiceRequest.coupon = coupon;
+        totalPrice = totalPrice - discountAmount;
+      }
+
+      newServiceRequest.totalPrice = totalPrice;
+
+      await this.bookingRepository.update(id, newServiceRequest);
+
+      const updatedServiceRequest = await this.findById(id);
+
+      return updatedServiceRequest;
+    } catch (error) {
+      throw error;
     }
   }
 

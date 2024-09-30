@@ -65,14 +65,23 @@ export class ServiceRequestController {
     };
   }
 
-  // TODO: implement update
   @Roles(Role.CLIENT)
   @Put(':id')
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Request() req,
-    updateServiceRequestDto: UpdateServiceRequestDto,
-  ) {}
+    @Body() updateServiceRequestDto: UpdateServiceRequestDto,
+  ) {
+    return {
+      data: await this.serviceRequestService.update(
+        id,
+        req.user.id,
+        updateServiceRequestDto,
+      ),
+      statusCode: HttpStatus.OK,
+      message: 'Success update service request',
+    };
+  }
 
   @Roles(Role.CLIENT)
   @Delete(':id')
