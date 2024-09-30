@@ -13,6 +13,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
+import { RejectTranslatorDto } from './dto/reject.dto';
 import { SearchTranslatorDto } from './dto/search-translator.dto';
 import { TranslatorStatus } from './entities/translator.entity';
 import { TranslatorService } from './translator.service';
@@ -95,8 +96,10 @@ export class TranslatorController {
   @Put(':id/reject')
   async reject(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @Body('reason') reason: string,
+    @Body() rejectDto: RejectTranslatorDto,
   ) {
+    const { reason } = rejectDto;
+
     return {
       data: await this.translatorService.updateTranslatorStatus(
         id,

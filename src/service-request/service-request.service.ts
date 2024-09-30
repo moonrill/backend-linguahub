@@ -1,5 +1,6 @@
 import { Booking, BookingStatus } from '#/booking/entities/booking.entity';
 import { CouponService } from '#/coupon/coupon.service';
+import { MailService } from '#/mail/mail.service';
 import { ServiceService } from '#/service/service.service';
 import { TranslatorService } from '#/translator/translator.service';
 import { UserCoupons } from '#/users/entities/user-coupons.entity';
@@ -33,6 +34,7 @@ export class ServiceRequestService {
     private userService: UsersService,
     private couponService: CouponService,
     private translatorService: TranslatorService,
+    private mailService: MailService,
   ) {}
 
   async findAll(
@@ -394,7 +396,15 @@ export class ServiceRequestService {
 
   async checkServiceRequest(id: string, translatorId: string) {
     try {
-      const serviceRequest = await this.findById(id);
+      const serviceRequest = await this.bookingRepository.findOneOrFail({
+        where: { id },
+        relations: [
+          'user.userDetail',
+          'translator.user.userDetail',
+          'service',
+          'coupon',
+        ],
+      });
 
       if (serviceRequest.translator.id !== translatorId) {
         throw new UnauthorizedException(
@@ -417,11 +427,17 @@ export class ServiceRequestService {
   async approve(id: string, userId: string) {
     try {
       const translator = await this.translatorService.findByUserId(userId);
-      await this.checkServiceRequest(id, translator.id);
+      const serviceRequest = await this.checkServiceRequest(id, translator.id);
 
       await this.bookingRepository.update(
         { id },
         { status: BookingStatus.UNPAID },
+      );
+
+      await this.mailService.sendServiceRequestEmail(
+        'Your Service Request Has Been Approved',
+        'approved',
+        serviceRequest,
       );
 
       return {
@@ -436,11 +452,17 @@ export class ServiceRequestService {
   async reject(id: string, userId: string, reason: string) {
     try {
       const translator = await this.translatorService.findByUserId(userId);
-      await this.checkServiceRequest(id, translator.id);
+      const serviceRequest = await this.checkServiceRequest(id, translator.id);
 
       await this.bookingRepository.update(
         { id },
         { status: BookingStatus.REJECTED, rejectionReason: reason },
+      );
+
+      await this.mailService.sendServiceRequestEmail(
+        'Your Service Request Has Been Rejected',
+        'rejected',
+        serviceRequest,
       );
 
       return {
