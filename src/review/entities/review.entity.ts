@@ -1,3 +1,4 @@
+import { Booking } from '#/booking/entities/booking.entity';
 import { Translator } from '#/translator/entities/translator.entity';
 import { User } from '#/users/entities/user.entity';
 import {
@@ -6,6 +7,7 @@ import {
   DeleteDateColumn,
   Entity,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -52,5 +54,6 @@ export class Review {
   @ManyToOne(() => Translator, (translator) => translator.reviews)
   translator: Translator;
 
-  // TODO: add booking relation
+  @OneToOne(() => Booking, (booking) => booking.review, { onDelete: 'CASCADE' })
+  booking: Booking;
 }

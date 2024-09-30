@@ -1,6 +1,7 @@
 import { Booking, BookingStatus } from '#/booking/entities/booking.entity';
 import { CouponService } from '#/coupon/coupon.service';
 import { ServiceService } from '#/service/service.service';
+import { TranslatorService } from '#/translator/translator.service';
 import { UserCoupons } from '#/users/entities/user-coupons.entity';
 import { UsersService } from '#/users/users.service';
 import { PaginationDto } from '#/utils/pagination.dto';
@@ -31,6 +32,7 @@ export class ServiceRequestService {
     private serviceService: ServiceService,
     private userService: UsersService,
     private couponService: CouponService,
+    private translatorService: TranslatorService,
   ) {}
 
   async findAll(
@@ -218,15 +220,36 @@ export class ServiceRequestService {
         where: { id },
         relations: [
           'translator.user.userDetail',
+          'translator.translatorSpecializations.specialization',
           'translator.translatorLanguages.language',
+          'translator.reviews',
           'service.sourceLanguage',
           'service.targetLanguage',
           'coupon',
           'user.userDetail',
+          'review',
         ],
       });
 
-      return data;
+      const { translator, ...restData } = data;
+
+      const {
+        services,
+        specializations,
+        languages,
+        reviews,
+        ...restTranslator
+      } = this.translatorService.destructTranslator(data.translator);
+
+      const destructTranslator = {
+        ...restTranslator,
+        languages: languages.splice(0, 3),
+      };
+
+      return {
+        ...restData,
+        translator: destructTranslator,
+      };
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Service request not found');

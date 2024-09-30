@@ -1,4 +1,5 @@
 import { Coupon } from '#/coupon/entities/coupon.entity';
+import { Review } from '#/review/entities/review.entity';
 import { Service } from '#/service/entities/service.entity';
 import { Translator } from '#/translator/entities/translator.entity';
 import { User } from '#/users/entities/user.entity';
@@ -7,7 +8,9 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -130,4 +133,8 @@ export class Booking {
 
   @ManyToOne(() => Coupon, (coupon) => coupon.bookings)
   coupon: Coupon;
+
+  @OneToOne(() => Review, (review) => review.booking)
+  @JoinColumn({ name: 'review_id' })
+  review: Review;
 }
