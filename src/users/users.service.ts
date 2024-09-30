@@ -1,6 +1,12 @@
+import { Booking } from '#/booking/entities/booking.entity';
 import { CouponStatus } from '#/coupon/entities/coupon.entity';
 import { Role } from '#/role/entities/role.entity';
 import { RoleService } from '#/role/role.service';
+import {
+  QueryServiceRequestDto,
+  ServiceRequestSortBy,
+  ServiceRequestStatus,
+} from '#/service-request/dto/query.dto';
 import { TranslatorService } from '#/translator/translator.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
@@ -15,6 +21,7 @@ import {
   DataSource,
   EntityManager,
   EntityNotFoundError,
+  In,
   LessThanOrEqual,
   MoreThanOrEqual,
   Repository,
@@ -44,6 +51,8 @@ export class UsersService {
     private userDetailRepository: Repository<UserDetail>,
     @InjectRepository(UserCoupons)
     private userCouponsRepository: Repository<UserCoupons>,
+    @InjectRepository(Booking)
+    private bookingRepository: Repository<Booking>,
     private roleService: RoleService,
     private translatorService: TranslatorService,
     private dataSource: DataSource,
@@ -352,5 +361,69 @@ export class UsersService {
         limit,
       };
     } catch (error) {}
+  }
+
+  async getUserServiceRequests(
+    userId: string,
+    paginationDto: PaginationDto,
+    queryDto: QueryServiceRequestDto,
+  ) {
+    try {
+      const user = await this.findById(userId);
+
+      const { page, limit } = paginationDto;
+      const { status, sortBy, order } = queryDto;
+
+      const whereClause = {
+        user: {
+          id: user.id,
+        },
+      };
+
+      if (status) {
+        whereClause['status'] = status;
+      } else {
+        whereClause['status'] = In([
+          ServiceRequestStatus.PENDING,
+          ServiceRequestStatus.CANCELLED,
+          ServiceRequestStatus.REJECTED,
+        ]);
+      }
+
+      const orderBy = {};
+
+      switch (sortBy) {
+        case ServiceRequestSortBy.DATE:
+          orderBy['createdAt'] = order;
+          break;
+        case ServiceRequestSortBy.PRICE:
+          orderBy['totalPrice'] = order;
+          break;
+      }
+
+      const [data, total] = await this.bookingRepository.findAndCount({
+        where: whereClause,
+        relations: [
+          'translator.user.userDetail',
+          'service.sourceLanguage',
+          'service.targetLanguage',
+        ],
+        order: orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data,
+        total,
+        page,
+        totalPages,
+        limit,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

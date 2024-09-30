@@ -1,3 +1,4 @@
+import { Booking } from '#/booking/entities/booking.entity';
 import { Role } from '#/role/entities/role.entity';
 import { RoleModule } from '#/role/role.module';
 import { TranslatorModule } from '#/translator/translator.module';
@@ -11,7 +12,7 @@ import { UsersService } from './users.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserDetail, Role, UserCoupons]),
+    TypeOrmModule.forFeature([User, UserDetail, Role, UserCoupons, Booking]),
     RoleModule,
     TranslatorModule,
   ],

@@ -1,5 +1,6 @@
 import { Role } from '#/auth/role.enum';
 import { Roles } from '#/auth/roles.decorator';
+import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   Body,
@@ -54,7 +55,23 @@ export class UsersController {
 
   @Roles(Role.CLIENT)
   @Get('service-requests')
-  async getServiceRequests(@Request() req) {}
+  async getServiceRequests(
+    @Request() req,
+    @Query() paginationDto: PaginationDto,
+    @Query() queryDto: QueryServiceRequestDto,
+  ) {
+    const result = await this.usersService.getUserServiceRequests(
+      req.user.id,
+      paginationDto,
+      queryDto,
+    );
+
+    return {
+      ...result,
+      statusCode: HttpStatus.OK,
+      message: 'Success get user service requests',
+    };
+  }
 
   @Roles(Role.CLIENT)
   @Get('bookings')
