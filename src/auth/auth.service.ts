@@ -39,7 +39,11 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     try {
-      const user = await this.userService.findByEmail(loginDto.email);
+      const user = await this.userRepository.findOneOrFail({
+        where: { email: loginDto.email },
+        relations: ['translator', 'role'],
+        select: ['id', 'email', 'password', 'role', 'translator'],
+      });
 
       if (user.role.name === 'translator') {
         if (user.translator.status === TranslatorStatus.PENDING) {
