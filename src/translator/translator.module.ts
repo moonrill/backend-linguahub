@@ -1,3 +1,4 @@
+import { Booking } from '#/booking/entities/booking.entity';
 import { LanguageModule } from '#/language/language.module';
 import { SpecializationModule } from '#/specialization/specialization.module';
 import { User } from '#/users/entities/user.entity';
@@ -16,6 +17,7 @@ import { TranslatorService } from './translator.service';
       User,
       TranslatorLanguages,
       TranslatorSpecializations,
+      Booking,
     ]),
     LanguageModule,
     forwardRef(() => SpecializationModule),

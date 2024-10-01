@@ -1,5 +1,11 @@
+import { Booking } from '#/booking/entities/booking.entity';
 import { LanguageService } from '#/language/language.service';
 import { MailService } from '#/mail/mail.service';
+import {
+  QueryServiceRequestDto,
+  ServiceRequestSortBy,
+  ServiceRequestStatus,
+} from '#/service-request/dto/query.dto';
 import { ServiceStatus } from '#/service/entities/service.entity';
 import { SpecializationService } from '#/specialization/specialization.service';
 import { Translator } from '#/translator/entities/translator.entity';
@@ -15,7 +21,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, EntityNotFoundError, Repository } from 'typeorm';
+import { EntityManager, EntityNotFoundError, In, Repository } from 'typeorm';
 import { CreateTranslatorDto } from './dto/create-translator.dto';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import {
@@ -31,6 +37,8 @@ export class TranslatorService {
   constructor(
     @InjectRepository(Translator)
     private translatorRepository: Repository<Translator>,
+    @InjectRepository(Booking)
+    private bookingRepository: Repository<Booking>,
     private configService: ConfigService,
     private languageService: LanguageService,
     @Inject(forwardRef(() => SpecializationService))
@@ -464,6 +472,70 @@ export class TranslatorService {
         where: { id },
         relations: ['user.userDetail'],
       });
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getTranslatorServiceRequests(
+    userId: string,
+    paginationDto: PaginationDto,
+    queryDto: QueryServiceRequestDto,
+  ) {
+    try {
+      const translator = await this.findByUserId(userId);
+
+      const { page, limit } = paginationDto;
+      const { status, sortBy, order } = queryDto;
+
+      let whereClause = {
+        translator: {
+          id: translator.id,
+        },
+      };
+
+      if (status) {
+        whereClause['status'] = status;
+      } else {
+        whereClause['status'] = In([
+          ServiceRequestStatus.PENDING,
+          ServiceRequestStatus.CANCELLED,
+          ServiceRequestStatus.REJECTED,
+        ]);
+      }
+
+      const orderBy = {};
+
+      switch (sortBy) {
+        case ServiceRequestSortBy.DATE:
+          orderBy['createdAt'] = order;
+          break;
+        case ServiceRequestSortBy.PRICE:
+          orderBy['totalPrice'] = order;
+          break;
+      }
+
+      const [data, total] = await this.bookingRepository.findAndCount({
+        where: whereClause,
+        relations: [
+          'user.userDetail',
+          'service.sourceLanguage',
+          'service.targetLanguage',
+        ],
+        order: orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data,
+        total,
+        page,
+        totalPages,
+        limit,
+      };
     } catch (error) {
       throw error;
     }

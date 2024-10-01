@@ -1,6 +1,7 @@
 import { Role } from '#/auth/role.enum';
 import { Roles } from '#/auth/roles.decorator';
 import { Public } from '#/auth/strategies/public.strategy';
+import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   Body,
@@ -11,6 +12,7 @@ import {
   ParseUUIDPipe,
   Put,
   Query,
+  Request,
 } from '@nestjs/common';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import { RejectTranslatorDto } from './dto/reject.dto';
@@ -66,6 +68,26 @@ export class TranslatorController {
       ...result,
       statusCode: HttpStatus.OK,
       message: 'Success get translator registration',
+    };
+  }
+
+  @Roles(Role.TRANSLATOR)
+  @Get('service-requests')
+  async getServiceRequests(
+    @Request() req,
+    @Query() paginationDto: PaginationDto,
+    @Query() queryDto: QueryServiceRequestDto,
+  ) {
+    const result = await this.translatorService.getTranslatorServiceRequests(
+      req.user.id,
+      paginationDto,
+      queryDto,
+    );
+
+    return {
+      ...result,
+      statusCode: HttpStatus.OK,
+      message: 'Success get translator service requests',
     };
   }
 
