@@ -4,6 +4,7 @@ import { Public } from '#/auth/strategies/public.strategy';
 import { BookingQueryDto } from '#/booking/dto/query.dto';
 import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
+import { translatorDocumentStorage } from '#/utils/upload-documents';
 import {
   Body,
   Controller,
@@ -14,10 +15,14 @@ import {
   Put,
   Query,
   Request,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import { RejectTranslatorDto } from './dto/reject.dto';
 import { SearchTranslatorDto } from './dto/search-translator.dto';
+import { UpdateTranslatorDto } from './dto/update-translator.dto';
 import { TranslatorStatus } from './entities/translator.entity';
 import { TranslatorService } from './translator.service';
 
@@ -119,6 +124,37 @@ export class TranslatorController {
       data: await this.translatorService.findById(id),
       statusCode: HttpStatus.OK,
       message: 'Success get translator by id',
+    };
+  }
+
+  @Roles(Role.TRANSLATOR)
+  @Put(':id')
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'cv', maxCount: 1 },
+        { name: 'certificate', maxCount: 1 },
+      ],
+      translatorDocumentStorage,
+    ),
+  )
+  async update(
+    @UploadedFiles()
+    documents: {
+      cv?: Express.Multer.File[];
+      certificate?: Express.Multer.File[];
+    },
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateTranslatorDto: UpdateTranslatorDto,
+  ) {
+    return {
+      data: await this.translatorService.update(
+        id,
+        updateTranslatorDto,
+        documents,
+      ),
+      statusCode: HttpStatus.OK,
+      message: 'Success update translator',
     };
   }
 

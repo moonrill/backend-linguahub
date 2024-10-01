@@ -8,6 +8,7 @@ import { ServiceStatus } from '#/service/entities/service.entity';
 import { SpecializationService } from '#/specialization/specialization.service';
 import { Translator } from '#/translator/entities/translator.entity';
 import { User } from '#/users/entities/user.entity';
+import { TranslatorDocumentsType } from '#/users/users.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   BadRequestException,
@@ -19,13 +20,19 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, EntityNotFoundError, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  EntityNotFoundError,
+  Repository,
+} from 'typeorm';
 import { CreateTranslatorDto } from './dto/create-translator.dto';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import {
   SearchTranslatorDto,
   TranslatorSortBy,
 } from './dto/search-translator.dto';
+import { UpdateTranslatorDto } from './dto/update-translator.dto';
 import { TranslatorLanguages } from './entities/translator-languages.entity';
 import { TranslatorSpecializations } from './entities/translator-specializations.entity';
 import { TranslatorStatus } from './entities/translator.entity';
@@ -35,6 +42,7 @@ export class TranslatorService {
   constructor(
     @InjectRepository(Translator)
     private translatorRepository: Repository<Translator>,
+    private dataSource: DataSource,
     private configService: ConfigService,
     private languageService: LanguageService,
     @Inject(forwardRef(() => SpecializationService))
@@ -127,6 +135,23 @@ export class TranslatorService {
     const translatorLanguages = await Promise.all(
       languageIds.map(async (languageId) => {
         const language = await this.languageService.findById(languageId);
+
+        // Check if translator already has this language
+        const isExists = await transactionalEntityManager.findOne(
+          TranslatorLanguages,
+          {
+            where: {
+              translator: { id: translator.id },
+              language: { id: language.id },
+            },
+          },
+        );
+
+        // Skip if translator already has this language
+        if (isExists) {
+          return null;
+        }
+
         const translatorLanguage = new TranslatorLanguages();
         translatorLanguage.translator = translator;
         translatorLanguage.language = language;
@@ -150,6 +175,23 @@ export class TranslatorService {
         const specialization = await this.specializationService.findById(
           specializationId,
         );
+
+        // Check if translator already has this specialization
+        const isExists = await transactionalEntityManager.findOne(
+          TranslatorSpecializations,
+          {
+            where: {
+              translator: { id: translator.id },
+              specialization: { id: specialization.id },
+            },
+          },
+        );
+
+        // Skip if translator already has this specialization
+        if (isExists) {
+          return null;
+        }
+
         const translatorSpecialization = new TranslatorSpecializations();
         translatorSpecialization.translator = translator;
         translatorSpecialization.specialization = specialization;
@@ -225,12 +267,14 @@ export class TranslatorService {
       translator;
 
     const languages = translatorLanguages.map((tl) => ({
+      id: tl.language.id,
       name: tl.language.name,
       flagImage: tl.language.flagImage,
     }));
-    const specializations = translatorSpecializations.map(
-      (ts) => ts.specialization.name,
-    );
+    const specializations = translatorSpecializations.map((ts) => ({
+      id: ts.specialization.id,
+      name: ts.specialization.name,
+    }));
     const { userDetail, email } = user;
 
     const { id, createdAt, updatedAt, deletedAt, ...restUserDetail } =
@@ -516,6 +560,72 @@ export class TranslatorService {
       return result;
     } catch (error) {
       throw error;
+    }
+  }
+
+  async update(
+    id: string,
+    updateTranslatorDto: UpdateTranslatorDto,
+    documents: TranslatorDocumentsType,
+  ) {
+    try {
+      const translator = await this.translatorRepository.findOneOrFail({
+        where: { id },
+        relations: ['user.userDetail'],
+      });
+
+      if (translator.status !== TranslatorStatus.APPROVED) {
+        throw new ConflictException(
+          'Cannot update. Translator is not approved',
+        );
+      }
+      return this.dataSource.transaction(async (transactionEntityManager) => {
+        const translatorEntity = new Translator();
+
+        translatorEntity.yearsOfExperience =
+          updateTranslatorDto.yearsOfExperience;
+        translatorEntity.portfolioLink = updateTranslatorDto.portfolioLink;
+        translatorEntity.bank = updateTranslatorDto.bank;
+        translatorEntity.bankAccountNumber =
+          updateTranslatorDto.bankAccountNumber;
+
+        if (documents.cv) {
+          translatorEntity.cv = this.getDocumentUrl(
+            'cv',
+            documents.cv[0].filename,
+          );
+        }
+
+        if (documents.certificate) {
+          translatorEntity.certificate = this.getDocumentUrl(
+            'certificate',
+            documents.certificate[0].filename,
+          );
+        }
+
+        await this.saveLanguages(
+          updateTranslatorDto.languages,
+          translator,
+          transactionEntityManager,
+        );
+        await this.saveSpecializations(
+          updateTranslatorDto.specializations,
+          translator,
+          transactionEntityManager,
+        );
+
+        await this.translatorRepository.update(id, translatorEntity);
+
+        return this.translatorRepository.findOneOrFail({
+          where: { id },
+        });
+      });
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Translator not found');
+      } else {
+        throw error;
+      }
     }
   }
 }

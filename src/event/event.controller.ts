@@ -1,3 +1,4 @@
+import { Public } from '#/auth/strategies/public.strategy';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { uploadImage } from '#/utils/upload-image';
 import {
@@ -57,6 +58,7 @@ export class EventController {
     };
   }
 
+  @Public()
   @Get()
   async findAll(
     @Query() paginationDto: PaginationDto,

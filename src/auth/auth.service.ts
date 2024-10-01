@@ -75,6 +75,10 @@ export class AuthService {
         role: user.role.name,
       };
 
+      if (user.role.name === 'translator') {
+        payload['translatorId'] = user.translator.id;
+      }
+
       const accessToken = await this.jwtService.signAsync(payload);
 
       return { accessToken };

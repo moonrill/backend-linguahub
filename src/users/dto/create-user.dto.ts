@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
+  ArrayUnique,
   IsArray,
   IsDate,
   IsEmail,
@@ -80,6 +81,7 @@ export class CreateUserDto {
   })
   @ValidateIf((o) => o.role === 'translator')
   @ArrayMinSize(2, { message: 'Must have at least 2 languages' })
+  @ArrayUnique()
   languages?: string[];
 
   @IsArray()
@@ -89,5 +91,6 @@ export class CreateUserDto {
   })
   @ValidateIf((o) => o.role === 'translator')
   @ArrayMinSize(1, { message: 'Must have at least 1 specialization' })
+  @ArrayUnique()
   specializations?: string[];
 }

@@ -23,6 +23,7 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Roles(Role.ADMIN)
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {
     const result = await this.usersService.findAll(paginationDto);

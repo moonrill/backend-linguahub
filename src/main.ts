@@ -1,18 +1,14 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Logger } from 'nestjs-pino';
-import { CorrelationIdMiddleware } from './utils/correlation-id.middleware';
+import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { join } from 'path';
-
-
+import { Logger } from 'nestjs-pino';
+import { AppModule } from './app.module';
+import { CorrelationIdMiddleware } from './utils/correlation-id.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
 
   const logger = app.get(Logger);
 
@@ -39,7 +35,8 @@ async function bootstrap() {
   const configService = app.get<ConfigService>(ConfigService);
   const port = configService.get<number>('port');
 
-  const hostname = '0.0.0.0';
+  // TODO: Replace this
+  const hostname = '172.17.0.134';
 
   await app.listen(port, hostname, () => {
     // logger.log(`Server listening on ${hostname}:${port}`);
