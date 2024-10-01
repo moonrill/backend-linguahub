@@ -1,5 +1,7 @@
+import { BookingModule } from '#/booking/booking.module';
 import { Booking } from '#/booking/entities/booking.entity';
 import { LanguageModule } from '#/language/language.module';
+import { ServiceRequestModule } from '#/service-request/service-request.module';
 import { SpecializationModule } from '#/specialization/specialization.module';
 import { User } from '#/users/entities/user.entity';
 import { forwardRef, Module } from '@nestjs/common';
@@ -20,7 +22,9 @@ import { TranslatorService } from './translator.service';
       Booking,
     ]),
     LanguageModule,
+    forwardRef(() => BookingModule),
     forwardRef(() => SpecializationModule),
+    forwardRef(() => ServiceRequestModule),
   ],
   controllers: [TranslatorController],
   providers: [TranslatorService],

@@ -1,5 +1,6 @@
 import { Role } from '#/auth/role.enum';
 import { Roles } from '#/auth/roles.decorator';
+import { BookingQueryDto } from '#/booking/dto/query.dto';
 import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
@@ -75,7 +76,23 @@ export class UsersController {
 
   @Roles(Role.CLIENT)
   @Get('bookings')
-  async getBookings(@Request() req) {}
+  async getBookings(
+    @Request() req,
+    @Query() paginationDto: PaginationDto,
+    @Query() queryDto: BookingQueryDto,
+  ) {
+    const result = await this.usersService.getUserBookings(
+      req.user.id,
+      paginationDto,
+      queryDto,
+    );
+
+    return {
+      ...result,
+      statusCode: HttpStatus.OK,
+      message: 'Success get user bookings',
+    };
+  }
 
   @Get(':id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {

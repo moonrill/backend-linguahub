@@ -1,11 +1,9 @@
-import { Booking } from '#/booking/entities/booking.entity';
+import { BookingService } from '#/booking/booking.service';
+import { BookingQueryDto } from '#/booking/dto/query.dto';
 import { LanguageService } from '#/language/language.service';
 import { MailService } from '#/mail/mail.service';
-import {
-  QueryServiceRequestDto,
-  ServiceRequestSortBy,
-  ServiceRequestStatus,
-} from '#/service-request/dto/query.dto';
+import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
+import { ServiceRequestService } from '#/service-request/service-request.service';
 import { ServiceStatus } from '#/service/entities/service.entity';
 import { SpecializationService } from '#/specialization/specialization.service';
 import { Translator } from '#/translator/entities/translator.entity';
@@ -21,7 +19,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, EntityNotFoundError, In, Repository } from 'typeorm';
+import { EntityManager, EntityNotFoundError, Repository } from 'typeorm';
 import { CreateTranslatorDto } from './dto/create-translator.dto';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import {
@@ -37,13 +35,15 @@ export class TranslatorService {
   constructor(
     @InjectRepository(Translator)
     private translatorRepository: Repository<Translator>,
-    @InjectRepository(Booking)
-    private bookingRepository: Repository<Booking>,
     private configService: ConfigService,
     private languageService: LanguageService,
     @Inject(forwardRef(() => SpecializationService))
     private specializationService: SpecializationService,
+    @Inject(forwardRef(() => ServiceRequestService))
+    private serviceRequestService: ServiceRequestService,
     private mailService: MailService,
+    @Inject(forwardRef(() => BookingService))
+    private bookingService: BookingService,
   ) {}
 
   private async getUser(
@@ -485,57 +485,35 @@ export class TranslatorService {
     try {
       const translator = await this.findByUserId(userId);
 
-      const { page, limit } = paginationDto;
-      const { status, sortBy, order } = queryDto;
+      const result = await this.serviceRequestService.findAll(
+        paginationDto,
+        queryDto,
+        'translator',
+        translator.id,
+      );
 
-      let whereClause = {
-        translator: {
-          id: translator.id,
-        },
-      };
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-      if (status) {
-        whereClause['status'] = status;
-      } else {
-        whereClause['status'] = In([
-          ServiceRequestStatus.PENDING,
-          ServiceRequestStatus.CANCELLED,
-          ServiceRequestStatus.REJECTED,
-        ]);
-      }
+  async getTranslatorBookings(
+    userId: string,
+    paginationDto: PaginationDto,
+    queryDto: BookingQueryDto,
+  ) {
+    try {
+      const translator = await this.findByUserId(userId);
 
-      const orderBy = {};
+      const result = await this.bookingService.findAll(
+        paginationDto,
+        queryDto,
+        'translator',
+        translator.id,
+      );
 
-      switch (sortBy) {
-        case ServiceRequestSortBy.DATE:
-          orderBy['createdAt'] = order;
-          break;
-        case ServiceRequestSortBy.PRICE:
-          orderBy['totalPrice'] = order;
-          break;
-      }
-
-      const [data, total] = await this.bookingRepository.findAndCount({
-        where: whereClause,
-        relations: [
-          'user.userDetail',
-          'service.sourceLanguage',
-          'service.targetLanguage',
-        ],
-        order: orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-      });
-
-      const totalPages = Math.ceil(total / limit);
-
-      return {
-        data,
-        total,
-        page,
-        totalPages,
-        limit,
-      };
+      return result;
     } catch (error) {
       throw error;
     }

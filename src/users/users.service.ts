@@ -1,17 +1,17 @@
-import { Booking } from '#/booking/entities/booking.entity';
+import { BookingService } from '#/booking/booking.service';
+import { BookingQueryDto } from '#/booking/dto/query.dto';
 import { CouponStatus } from '#/coupon/entities/coupon.entity';
 import { Role } from '#/role/entities/role.entity';
 import { RoleService } from '#/role/role.service';
-import {
-  QueryServiceRequestDto,
-  ServiceRequestSortBy,
-  ServiceRequestStatus,
-} from '#/service-request/dto/query.dto';
+import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
+import { ServiceRequestService } from '#/service-request/service-request.service';
 import { TranslatorService } from '#/translator/translator.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   BadRequestException,
   ConflictException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -21,7 +21,6 @@ import {
   DataSource,
   EntityManager,
   EntityNotFoundError,
-  In,
   LessThanOrEqual,
   MoreThanOrEqual,
   Repository,
@@ -51,11 +50,13 @@ export class UsersService {
     private userDetailRepository: Repository<UserDetail>,
     @InjectRepository(UserCoupons)
     private userCouponsRepository: Repository<UserCoupons>,
-    @InjectRepository(Booking)
-    private bookingRepository: Repository<Booking>,
     private roleService: RoleService,
-    private translatorService: TranslatorService,
     private dataSource: DataSource,
+    @Inject(forwardRef(() => TranslatorService))
+    private translatorService: TranslatorService,
+    @Inject(forwardRef(() => ServiceRequestService))
+    private serviceRequestService: ServiceRequestService,
+    private bookingService: BookingService,
   ) {}
 
   async create(
@@ -371,57 +372,35 @@ export class UsersService {
     try {
       const user = await this.findById(userId);
 
-      const { page, limit } = paginationDto;
-      const { status, sortBy, order } = queryDto;
+      const result = await this.serviceRequestService.findAll(
+        paginationDto,
+        queryDto,
+        'user',
+        user.id,
+      );
 
-      const whereClause = {
-        user: {
-          id: user.id,
-        },
-      };
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-      if (status) {
-        whereClause['status'] = status;
-      } else {
-        whereClause['status'] = In([
-          ServiceRequestStatus.PENDING,
-          ServiceRequestStatus.CANCELLED,
-          ServiceRequestStatus.REJECTED,
-        ]);
-      }
+  async getUserBookings(
+    userId: string,
+    paginationDto: PaginationDto,
+    queryDto: BookingQueryDto,
+  ) {
+    try {
+      const user = await this.findById(userId);
 
-      const orderBy = {};
+      const result = await this.bookingService.findAll(
+        paginationDto,
+        queryDto,
+        'user',
+        user.id,
+      );
 
-      switch (sortBy) {
-        case ServiceRequestSortBy.DATE:
-          orderBy['createdAt'] = order;
-          break;
-        case ServiceRequestSortBy.PRICE:
-          orderBy['totalPrice'] = order;
-          break;
-      }
-
-      const [data, total] = await this.bookingRepository.findAndCount({
-        where: whereClause,
-        relations: [
-          'translator.user.userDetail',
-          'service.sourceLanguage',
-          'service.targetLanguage',
-        ],
-        order: orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-      });
-
-      const totalPages = Math.ceil(total / limit);
-
-      return {
-        data,
-        total,
-        page,
-        totalPages,
-        limit,
-      };
+      return result;
     } catch (error) {
       throw error;
     }

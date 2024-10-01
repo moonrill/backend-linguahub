@@ -8,7 +8,9 @@ import { PaginationDto } from '#/utils/pagination.dto';
 import {
   BadRequestException,
   ForbiddenException,
+  forwardRef,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -25,6 +27,7 @@ export class ServiceService {
     private serviceRepository: Repository<Service>,
     @InjectRepository(Translator)
     private translatorRepository: Repository<Translator>,
+    @Inject(forwardRef(() => TranslatorService))
     private translatorService: TranslatorService,
     private languageService: LanguageService,
   ) {}

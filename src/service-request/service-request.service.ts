@@ -8,7 +8,9 @@ import { UsersService } from '#/users/users.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   BadRequestException,
+  forwardRef,
   HttpStatus,
+  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -30,9 +32,12 @@ export class ServiceRequestService {
     private bookingRepository: Repository<Booking>,
     @InjectRepository(UserCoupons)
     private userCouponsRepository: Repository<UserCoupons>,
+    @Inject(forwardRef(() => ServiceService))
     private serviceService: ServiceService,
+    @Inject(forwardRef(() => UsersService))
     private userService: UsersService,
     private couponService: CouponService,
+    @Inject(forwardRef(() => TranslatorService))
     private translatorService: TranslatorService,
     private mailService: MailService,
   ) {}
@@ -40,41 +45,54 @@ export class ServiceRequestService {
   async findAll(
     paginationDto: PaginationDto,
     queryDto: QueryServiceRequestDto,
+    type?: 'user' | 'translator',
+    id?: string,
   ) {
     try {
       const { page, limit } = paginationDto;
+      const { status, sortBy, order } = queryDto;
 
       const whereClause = {};
+      const relations = [
+        'service.sourceLanguage',
+        'service.targetLanguage',
+        'translator.user.userDetail',
+        'user.userDetail',
+      ];
 
-      if (queryDto.status) {
-        whereClause['status'] = queryDto.status;
+      if (type === 'user') {
+        whereClause['user'] = {
+          id,
+        };
+        relations.splice(3, 1);
+      } else if (type === 'translator') {
+        whereClause['translator'] = {
+          id,
+        };
+        relations.splice(2, 1);
+      }
+
+      const serviceRequestStatus = Object.values(ServiceRequestStatus);
+      if (status) {
+        whereClause['status'] = status;
       } else {
-        whereClause['status'] = In([
-          ServiceRequestStatus.PENDING,
-          ServiceRequestStatus.CANCELLED,
-          ServiceRequestStatus.REJECTED,
-        ]);
+        whereClause['status'] = In(serviceRequestStatus);
       }
 
       const orderBy = {};
 
-      switch (queryDto.sortBy) {
+      switch (sortBy) {
         case ServiceRequestSortBy.DATE:
-          orderBy['createdAt'] = queryDto.order;
+          orderBy['createdAt'] = order;
           break;
         case ServiceRequestSortBy.PRICE:
-          orderBy['totalPrice'] = queryDto.order;
+          orderBy['totalPrice'] = order;
           break;
       }
 
       const [data, total] = await this.bookingRepository.findAndCount({
         where: whereClause,
-        relations: [
-          'translator.user.userDetail',
-          'user.userDetail',
-          'service.sourceLanguage',
-          'service.targetLanguage',
-        ],
+        relations,
         order: orderBy,
         skip: (page - 1) * limit,
         take: limit,
@@ -229,7 +247,6 @@ export class ServiceRequestService {
           'service.targetLanguage',
           'coupon',
           'user.userDetail',
-          'review',
         ],
       });
 

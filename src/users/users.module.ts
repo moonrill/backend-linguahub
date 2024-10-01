@@ -1,8 +1,9 @@
-import { Booking } from '#/booking/entities/booking.entity';
+import { BookingModule } from '#/booking/booking.module';
 import { Role } from '#/role/entities/role.entity';
 import { RoleModule } from '#/role/role.module';
+import { ServiceRequestModule } from '#/service-request/service-request.module';
 import { TranslatorModule } from '#/translator/translator.module';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserCoupons } from './entities/user-coupons.entity';
 import { UserDetail } from './entities/user-detail.entity';
@@ -12,9 +13,12 @@ import { UsersService } from './users.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserDetail, Role, UserCoupons, Booking]),
+    TypeOrmModule.forFeature([User, UserDetail, Role, UserCoupons]),
     RoleModule,
-    TranslatorModule,
+    ServiceRequestModule,
+    BookingModule,
+    forwardRef(() => TranslatorModule),
+    forwardRef(() => ServiceRequestModule),
   ],
   controllers: [UsersController],
   providers: [UsersService],
