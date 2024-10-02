@@ -451,7 +451,10 @@ export class ServiceRequestService {
 
       await this.bookingRepository.update(
         { id },
-        { bookingStatus: BookingStatus.UNPAID },
+        {
+          requestStatus: BookingRequestStatus.APPROVED,
+          bookingStatus: BookingStatus.UNPAID,
+        },
       );
 
       await this.mailService.sendServiceRequestEmail(

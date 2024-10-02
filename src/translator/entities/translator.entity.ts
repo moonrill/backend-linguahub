@@ -85,6 +85,13 @@ export class Translator {
   })
   rejectionReason: string;
 
+  @Column({
+    name: 'reviews_count',
+    type: 'int',
+    default: 0,
+  })
+  reviewsCount: number;
+
   @CreateDateColumn({
     name: 'created_at',
     type: 'timestamp with time zone',

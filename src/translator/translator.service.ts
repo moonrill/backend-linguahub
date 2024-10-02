@@ -286,7 +286,6 @@ export class TranslatorService {
       ...translatorDetail,
       languages,
       specializations,
-      reviewsCount: translator.reviews.length,
     };
   }
 

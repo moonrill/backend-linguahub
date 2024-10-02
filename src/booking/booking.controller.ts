@@ -1,11 +1,16 @@
+import { Role } from '#/auth/role.enum';
+import { Roles } from '#/auth/roles.decorator';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Put,
   Query,
+  Request,
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { BookingQueryDto } from './dto/query.dto';
@@ -35,5 +40,16 @@ export class BookingController {
       statusCode: HttpStatus.OK,
       message: 'Success get booking by id',
     };
+  }
+
+  @Roles(Role.CLIENT)
+  @Put(':id/complete')
+  async complete(@Param('id', new ParseUUIDPipe()) id: string, @Request() req) {
+    return await this.bookingService.completeBooking(id, req.user.id);
+  }
+
+  @Delete(':id/cancel')
+  async cancel(@Param('id', new ParseUUIDPipe()) id: string, @Request() req) {
+    return await this.bookingService.cancelBooking(id, req.user.id);
   }
 }

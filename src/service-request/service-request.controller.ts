@@ -102,7 +102,7 @@ export class ServiceRequestController {
   }
 
   @Roles(Role.CLIENT)
-  @Delete(':id')
+  @Delete(':id/cancel')
   async cancel(@Request() req, @Param('id', new ParseUUIDPipe()) id: string) {
     return await this.serviceRequestService.cancelRequest(id, req.user.id);
   }

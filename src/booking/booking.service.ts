@@ -1,15 +1,22 @@
 import { TranslatorService } from '#/translator/translator.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
+  BadRequestException,
   forwardRef,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, In, Repository } from 'typeorm';
 import { BookingQueryDto, BookingSortBy } from './dto/query.dto';
-import { Booking, BookingStatus } from './entities/booking.entity';
+import {
+  Booking,
+  BookingRequestStatus,
+  BookingStatus,
+} from './entities/booking.entity';
 
 @Injectable()
 export class BookingService {
@@ -30,7 +37,9 @@ export class BookingService {
       const { page, limit } = paginationDto;
       const { status, sortBy, order } = queryDto;
 
-      const whereClause = {};
+      const whereClause = {
+        requestStatus: BookingRequestStatus.APPROVED,
+      };
       const relations = [
         'service.sourceLanguage',
         'service.targetLanguage',
@@ -51,6 +60,7 @@ export class BookingService {
       }
 
       const bookingStatus = Object.values(BookingStatus);
+
       if (status) {
         whereClause['bookingStatus'] = status;
       } else {
@@ -132,6 +142,63 @@ export class BookingService {
       } else {
         throw error;
       }
+    }
+  }
+
+  async completeBooking(id: string, userId: string) {
+    try {
+      const booking = await this.findById(id);
+
+      if (booking.user.id !== userId) {
+        throw new UnauthorizedException('Unauthorized user');
+      }
+
+      if (booking.bookingStatus !== BookingStatus.IN_PROGRESS) {
+        throw new BadRequestException('Cannot complete booking');
+      }
+
+      await this.bookingRepository.update(booking.id, {
+        bookingStatus: BookingStatus.COMPLETED,
+      });
+
+      return {
+        data: booking,
+        statusCode: HttpStatus.OK,
+        message: 'Success complete booking',
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // TODO: Handle Refund
+  async cancelBooking(id: string, userId: string) {
+    try {
+      const booking = await this.findById(id);
+
+      if (booking.user.id !== userId) {
+        throw new UnauthorizedException('Unauthorized user');
+      }
+
+      const disallowedStatus = [
+        BookingStatus.COMPLETED,
+        BookingStatus.CANCELLED,
+      ];
+
+      if (disallowedStatus.includes(booking.bookingStatus)) {
+        throw new BadRequestException('Booking cannot be cancelled');
+      }
+
+      await this.bookingRepository.update(booking.id, {
+        bookingStatus: BookingStatus.CANCELLED,
+      });
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Success cancel booking',
+      };
+    } catch (error) {
+      throw error;
     }
   }
 }
