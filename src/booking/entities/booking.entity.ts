@@ -15,12 +15,17 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export enum BookingStatus {
+export enum BookingRequestStatus {
   PENDING = 'pending',
+  APPROVED = 'approved',
   REJECTED = 'rejected',
+  CANCELLED = 'cancelled',
+}
+
+export enum BookingStatus {
   UNPAID = 'unpaid',
   IN_PROGRESS = 'in_progress',
-  FINISHED = 'finished',
+  COMPLETED = 'completed',
   CANCELLED = 'cancelled',
 }
 
@@ -53,10 +58,20 @@ export class Booking {
   duration: number;
 
   @Column({
+    name: 'request_status',
+    type: 'enum',
+    enum: BookingRequestStatus,
+    default: BookingRequestStatus.PENDING,
+  })
+  requestStatus: BookingRequestStatus;
+
+  @Column({
+    name: 'booking_status',
     type: 'enum',
     enum: BookingStatus,
+    nullable: true,
   })
-  status: BookingStatus;
+  bookingStatus: BookingStatus;
 
   @Column({
     type: 'text',

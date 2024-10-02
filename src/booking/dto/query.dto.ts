@@ -1,11 +1,5 @@
 import { IsEnum, IsOptional } from 'class-validator';
-
-export enum BookingStatus {
-  UNPAID = 'unpaid',
-  IN_PROGRESS = 'in_progress',
-  FINISHED = 'finished',
-  CANCELLED = 'cancelled',
-}
+import { BookingStatus } from '../entities/booking.entity';
 
 export enum BookingSortBy {
   DATE = 'date',

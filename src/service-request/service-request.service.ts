@@ -1,4 +1,9 @@
-import { Booking, BookingStatus } from '#/booking/entities/booking.entity';
+import { BookingSortBy } from '#/booking/dto/query.dto';
+import {
+  Booking,
+  BookingRequestStatus,
+  BookingStatus,
+} from '#/booking/entities/booking.entity';
 import { CouponService } from '#/coupon/coupon.service';
 import { MailService } from '#/mail/mail.service';
 import { ServiceService } from '#/service/service.service';
@@ -18,11 +23,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, In, Repository } from 'typeorm';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
-import {
-  QueryServiceRequestDto,
-  ServiceRequestSortBy,
-  ServiceRequestStatus,
-} from './dto/query.dto';
+import { QueryServiceRequestDto } from './dto/query.dto';
 import { UpdateServiceRequestDto } from './dto/update-service-request.dto';
 
 @Injectable()
@@ -72,20 +73,20 @@ export class ServiceRequestService {
         relations.splice(2, 1);
       }
 
-      const serviceRequestStatus = Object.values(ServiceRequestStatus);
+      const serviceRequestStatus = Object.values(BookingRequestStatus);
       if (status) {
-        whereClause['status'] = status;
+        whereClause['requestStatus'] = status;
       } else {
-        whereClause['status'] = In(serviceRequestStatus);
+        whereClause['requestStatus'] = In(serviceRequestStatus);
       }
 
       const orderBy = {};
 
       switch (sortBy) {
-        case ServiceRequestSortBy.DATE:
+        case BookingSortBy.DATE:
           orderBy['createdAt'] = order;
           break;
-        case ServiceRequestSortBy.PRICE:
+        case BookingSortBy.PRICE:
           orderBy['totalPrice'] = order;
           break;
       }
@@ -146,7 +147,7 @@ export class ServiceRequestService {
         createServiceRequestDto.startAt,
         createServiceRequestDto.endAt,
       );
-      newServiceRequest.status = BookingStatus.PENDING;
+      newServiceRequest.requestStatus = BookingRequestStatus.PENDING;
 
       // Price
       newServiceRequest.serviceFee =
@@ -290,7 +291,7 @@ export class ServiceRequestService {
         throw new UnauthorizedException('Unauthorized user');
       }
 
-      if (serviceRequest.status !== BookingStatus.PENDING) {
+      if (serviceRequest.requestStatus !== BookingRequestStatus.PENDING) {
         throw new BadRequestException(
           'Sorry you cant update this service request',
         );
@@ -393,13 +394,15 @@ export class ServiceRequestService {
         throw new UnauthorizedException('Unauthorized user');
       }
 
-      if (serviceRequest.status === BookingStatus.CANCELLED) {
-        throw new BadRequestException('Service request already cancelled');
+      if (serviceRequest.requestStatus !== BookingRequestStatus.PENDING) {
+        throw new BadRequestException(
+          'Only pending service request can be cancelled',
+        );
       }
 
       await this.bookingRepository.update(
         { id },
-        { status: BookingStatus.CANCELLED },
+        { requestStatus: BookingRequestStatus.CANCELLED },
       );
 
       return {
@@ -429,7 +432,7 @@ export class ServiceRequestService {
         );
       }
 
-      if (serviceRequest.status !== BookingStatus.PENDING) {
+      if (serviceRequest.requestStatus !== BookingRequestStatus.PENDING) {
         throw new BadRequestException(
           'Only pending service request can be approved',
         );
@@ -448,7 +451,7 @@ export class ServiceRequestService {
 
       await this.bookingRepository.update(
         { id },
-        { status: BookingStatus.UNPAID },
+        { bookingStatus: BookingStatus.UNPAID },
       );
 
       await this.mailService.sendServiceRequestEmail(
@@ -473,7 +476,10 @@ export class ServiceRequestService {
 
       await this.bookingRepository.update(
         { id },
-        { status: BookingStatus.REJECTED, rejectionReason: reason },
+        {
+          requestStatus: BookingRequestStatus.REJECTED,
+          rejectionReason: reason,
+        },
       );
 
       await this.mailService.sendServiceRequestEmail(

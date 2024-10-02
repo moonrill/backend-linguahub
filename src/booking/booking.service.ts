@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, In, Repository } from 'typeorm';
-import { BookingQueryDto, BookingSortBy, BookingStatus } from './dto/query.dto';
-import { Booking } from './entities/booking.entity';
+import { BookingQueryDto, BookingSortBy } from './dto/query.dto';
+import { Booking, BookingStatus } from './entities/booking.entity';
 
 @Injectable()
 export class BookingService {
@@ -52,9 +52,9 @@ export class BookingService {
 
       const bookingStatus = Object.values(BookingStatus);
       if (status) {
-        whereClause['status'] = status;
+        whereClause['bookingStatus'] = status;
       } else {
-        whereClause['status'] = In(bookingStatus);
+        whereClause['bookingStatus'] = In(bookingStatus);
       }
 
       const orderBy = {};

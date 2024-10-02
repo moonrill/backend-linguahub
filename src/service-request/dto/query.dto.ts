@@ -1,24 +1,15 @@
+import { BookingSortBy } from '#/booking/dto/query.dto';
+import { BookingRequestStatus } from '#/booking/entities/booking.entity';
 import { IsEnum, IsOptional } from 'class-validator';
-
-export enum ServiceRequestStatus {
-  PENDING = 'pending',
-  REJECTED = 'rejected',
-  CANCELLED = 'cancelled',
-}
-
-export enum ServiceRequestSortBy {
-  DATE = 'date',
-  PRICE = 'price',
-}
 
 export class QueryServiceRequestDto {
   @IsOptional()
-  @IsEnum(ServiceRequestStatus)
-  status?: ServiceRequestStatus;
+  @IsEnum(BookingRequestStatus)
+  status?: BookingRequestStatus;
 
   @IsOptional()
-  @IsEnum(ServiceRequestSortBy)
-  sortBy: ServiceRequestSortBy = ServiceRequestSortBy.DATE;
+  @IsEnum(BookingSortBy)
+  sortBy: BookingSortBy = BookingSortBy.DATE;
 
   @IsOptional()
   order: 'ASC' | 'DESC' = 'DESC';
