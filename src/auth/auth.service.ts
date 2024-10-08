@@ -38,8 +38,8 @@ export class AuthService {
     try {
       const user = await this.userRepository.findOneOrFail({
         where: { email: loginDto.email },
-        relations: ['translator', 'role'],
-        select: ['id', 'email', 'password', 'role', 'translator'],
+        relations: ['translator', 'role', 'userDetail'],
+        select: ['id', 'email', 'password', 'role', 'translator', 'userDetail'],
       });
 
       if (user.role.name === 'translator') {
@@ -69,6 +69,7 @@ export class AuthService {
       const payload = {
         id: user.id,
         email: user.email,
+        fullName: user.userDetail.fullName,
         role: user.role.name,
       };
 
