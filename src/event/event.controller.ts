@@ -44,6 +44,18 @@ export class EventController {
     };
   }
 
+  @Post('/upload/poster')
+  @UseInterceptors(FileInterceptor('poster', uploadImage('poster')))
+  async uploadPoster(@UploadedFile() poster: Express.Multer.File) {
+    if (typeof poster === 'undefined') {
+      throw new BadRequestException('Poster is not uploaded');
+    }
+
+    return {
+      poster: poster?.filename,
+    };
+  }
+
   @Put(':id')
   @UseInterceptors(FileInterceptor('poster', uploadImage('poster')))
   async update(

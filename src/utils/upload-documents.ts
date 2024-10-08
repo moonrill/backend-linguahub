@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
+import { randomUUID } from 'crypto';
 import * as fs from 'fs';
 import { diskStorage } from 'multer';
 import { extname, join } from 'path';
@@ -21,9 +22,9 @@ export const translatorDocumentStorage: MulterOptions = {
       cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-      const timestamp = Date.now();
+      const uuid = randomUUID();
       const extension = extname(file.originalname);
-      const newFileName = timestamp + extension;
+      const newFileName = uuid + extension;
 
       cb(null, newFileName);
     },
