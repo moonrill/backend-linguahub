@@ -8,7 +8,6 @@ import { ServiceStatus } from '#/service/entities/service.entity';
 import { SpecializationService } from '#/specialization/specialization.service';
 import { Translator } from '#/translator/entities/translator.entity';
 import { User } from '#/users/entities/user.entity';
-import { TranslatorDocumentsType } from '#/users/users.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   BadRequestException,
@@ -18,7 +17,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   DataSource,
@@ -43,7 +41,6 @@ export class TranslatorService {
     @InjectRepository(Translator)
     private translatorRepository: Repository<Translator>,
     private dataSource: DataSource,
-    private configService: ConfigService,
     private languageService: LanguageService,
     @Inject(forwardRef(() => SpecializationService))
     private specializationService: SpecializationService,
@@ -105,26 +102,19 @@ export class TranslatorService {
     transactionalEntityManager: EntityManager,
   ): Promise<Translator> {
     const newTranslator = new Translator();
+
     Object.assign(newTranslator, {
       status: TranslatorStatus.PENDING,
       yearsOfExperience: createTranslatorDto.yearsOfExperience,
       portfolioLink: createTranslatorDto.portfolioLink,
       bank: createTranslatorDto.bank,
       bankAccountNumber: createTranslatorDto.bankAccountNumber,
-      cv: this.getDocumentUrl('cv', createTranslatorDto.cv),
-      certificate: this.getDocumentUrl(
-        'certificate',
-        createTranslatorDto.certificate,
-      ),
+      cv: createTranslatorDto.cv,
+      certificate: createTranslatorDto.certificate,
       user: user,
     });
 
     return transactionalEntityManager.save(Translator, newTranslator);
-  }
-
-  private getDocumentUrl(type: 'cv' | 'certificate', filename: string): string {
-    const baseUrl = this.configService.get('BASE_URL');
-    return `${baseUrl}/uploads/documents/${type}/${filename}`;
   }
 
   private async saveLanguages(
@@ -153,8 +143,10 @@ export class TranslatorService {
         }
 
         const translatorLanguage = new TranslatorLanguages();
+
         translatorLanguage.translator = translator;
         translatorLanguage.language = language;
+
         return translatorLanguage;
       }),
     );
@@ -193,8 +185,10 @@ export class TranslatorService {
         }
 
         const translatorSpecialization = new TranslatorSpecializations();
+
         translatorSpecialization.translator = translator;
         translatorSpecialization.specialization = specialization;
+
         return translatorSpecialization;
       }),
     );
@@ -308,6 +302,7 @@ export class TranslatorService {
 
       const reviewsData = data.reviews.map((review) => {
         const { user, ...restReview } = review;
+
         return {
           ...restReview,
           client: {
@@ -562,11 +557,7 @@ export class TranslatorService {
     }
   }
 
-  async update(
-    id: string,
-    updateTranslatorDto: UpdateTranslatorDto,
-    documents: TranslatorDocumentsType,
-  ) {
+  async update(id: string, updateTranslatorDto: UpdateTranslatorDto) {
     try {
       const translator = await this.translatorRepository.findOneOrFail({
         where: { id },
@@ -578,6 +569,7 @@ export class TranslatorService {
           'Cannot update. Translator is not approved',
         );
       }
+
       return this.dataSource.transaction(async (transactionEntityManager) => {
         const translatorEntity = new Translator();
 
@@ -587,20 +579,6 @@ export class TranslatorService {
         translatorEntity.bank = updateTranslatorDto.bank;
         translatorEntity.bankAccountNumber =
           updateTranslatorDto.bankAccountNumber;
-
-        if (documents.cv) {
-          translatorEntity.cv = this.getDocumentUrl(
-            'cv',
-            documents.cv[0].filename,
-          );
-        }
-
-        if (documents.certificate) {
-          translatorEntity.certificate = this.getDocumentUrl(
-            'certificate',
-            documents.certificate[0].filename,
-          );
-        }
 
         await this.saveLanguages(
           updateTranslatorDto.languages,

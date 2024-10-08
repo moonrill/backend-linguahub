@@ -23,22 +23,12 @@ import { EventService } from './event.service';
 
 @Controller('events')
 export class EventController {
-  private readonly basePosterUrl: string;
-
   constructor(private readonly eventService: EventService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('poster', uploadImage('poster')))
-  async create(
-    @UploadedFile() poster: Express.Multer.File,
-    @Body() createEventDto: CreateEventDto,
-  ) {
-    if (!poster) {
-      throw new BadRequestException('Poster is required');
-    }
-
+  async create(@Body() createEventDto: CreateEventDto) {
     return {
-      data: await this.eventService.create(createEventDto, poster),
+      data: await this.eventService.create(createEventDto),
       statusCode: HttpStatus.CREATED,
       message: 'Success create event',
     };
@@ -57,14 +47,12 @@ export class EventController {
   }
 
   @Put(':id')
-  @UseInterceptors(FileInterceptor('poster', uploadImage('poster')))
   async update(
     @Param('id') id: string,
-    @UploadedFile() poster: Express.Multer.File,
     @Body() updateEventDto: UpdateEventDto,
   ) {
     return {
-      data: await this.eventService.update(id, updateEventDto, poster),
+      data: await this.eventService.update(id, updateEventDto),
       statusCode: HttpStatus.OK,
       message: 'Success update event',
     };

@@ -93,4 +93,12 @@ export class CreateUserDto {
   @ArrayMinSize(1, { message: 'Must have at least 1 specialization' })
   @ArrayUnique()
   specializations?: string[];
+
+  @ValidateIf((o) => o.role === 'translator')
+  @IsNotEmpty()
+  cv: string;
+
+  @ValidateIf((o) => o.role === 'translator')
+  @IsNotEmpty()
+  certificate: string;
 }

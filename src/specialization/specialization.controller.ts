@@ -29,21 +29,9 @@ export class SpecializationController {
 
   @Roles(Role.ADMIN)
   @Post()
-  @UseInterceptors(FileInterceptor('logo', uploadImage('specialization')))
-  async create(
-    @Body() createSpecializationDto: CreateSpecializationDto,
-    @UploadedFile()
-    logo: Express.Multer.File,
-  ) {
-    if (!logo) {
-      throw new BadRequestException('Logo is required');
-    }
-
+  async create(@Body() createSpecializationDto: CreateSpecializationDto) {
     return {
-      data: await this.specializationService.create(
-        createSpecializationDto,
-        logo,
-      ),
+      data: await this.specializationService.create(createSpecializationDto),
       statusCode: HttpStatus.CREATED,
       message: 'Success create specialization',
     };
@@ -93,17 +81,14 @@ export class SpecializationController {
 
   @Roles(Role.ADMIN)
   @Put(':id')
-  @UseInterceptors(FileInterceptor('logo', uploadImage('specialization')))
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateSpecializationDto: UpdateSpecializationDto,
-    @UploadedFile() logo: Express.Multer.File,
   ) {
     return {
       data: await this.specializationService.update(
         id,
         updateSpecializationDto,
-        logo,
       ),
       statusCode: HttpStatus.OK,
       message: 'Success update specialization',

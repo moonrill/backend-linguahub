@@ -1,7 +1,7 @@
 import { TranslatorStatus } from '#/translator/entities/translator.entity';
 import { CreateUserDto } from '#/users/dto/create-user.dto';
 import { User } from '#/users/entities/user.entity';
-import { TranslatorDocumentsType, UsersService } from '#/users/users.service';
+import { UsersService } from '#/users/users.service';
 import {
   BadRequestException,
   ForbiddenException,
@@ -24,12 +24,9 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async register(
-    createUserDto: CreateUserDto,
-    documents: TranslatorDocumentsType,
-  ) {
+  async register(createUserDto: CreateUserDto) {
     try {
-      const user = await this.userService.create(createUserDto, documents);
+      const user = await this.userService.create(createUserDto);
 
       return user;
     } catch (error) {
@@ -107,6 +104,7 @@ export class AuthService {
       }
 
       const newSalt = await bcrypt.genSalt();
+
       user.salt = newSalt;
       user.password = await bcrypt.hash(changePasswordDto.newPassword, newSalt);
 

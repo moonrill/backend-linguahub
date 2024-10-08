@@ -59,10 +59,7 @@ export class UsersService {
     private bookingService: BookingService,
   ) {}
 
-  async create(
-    createUserDto: CreateUserDto,
-    documents: TranslatorDocumentsType,
-  ) {
+  async create(createUserDto: CreateUserDto) {
     try {
       return this.dataSource.transaction(async (transactionEntityManager) => {
         await this.checkIfUserExists(createUserDto.email);
@@ -88,11 +85,12 @@ export class UsersService {
             bank: createUserDto.bank,
             bankAccountNumber: createUserDto.bankAccountNumber,
             userId: user.id,
-            cv: documents.cv[0].filename,
-            certificate: documents.certificate[0].filename,
+            cv: createUserDto.cv,
+            certificate: createUserDto.certificate,
             languages: createUserDto.languages,
             specializations: createUserDto.specializations,
           };
+
           await this.translatorService.create(
             translatorData,
             transactionEntityManager,

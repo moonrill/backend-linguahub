@@ -10,7 +10,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, ILike, Repository } from 'typeorm';
 import { CreateSpecializationDto } from './dto/create-specialization.dto';
@@ -28,12 +27,9 @@ export class SpecializationService {
     private translatorRepository: Repository<Translator>,
     @Inject(forwardRef(() => TranslatorService))
     private translatorService: TranslatorService,
-    private configService: ConfigService,
   ) {}
-  async create(
-    createSpecializationDto: CreateSpecializationDto,
-    logo: Express.Multer.File,
-  ) {
+
+  async create(createSpecializationDto: CreateSpecializationDto) {
     try {
       const existName = await this.specializationRepository.findOne({
         where: {
@@ -46,10 +42,9 @@ export class SpecializationService {
       }
 
       const newSpecialization = new Specialization();
-      newSpecialization.name = createSpecializationDto.name;
 
-      const baseUrl = this.configService.get<string>('BASE_URL');
-      newSpecialization.logo = `${baseUrl}/images/specialization/${logo.filename}`;
+      newSpecialization.name = createSpecializationDto.name;
+      newSpecialization.logo = createSpecializationDto.logo;
 
       const result = await this.specializationRepository.insert(
         newSpecialization,
@@ -148,11 +143,7 @@ export class SpecializationService {
     }
   }
 
-  async update(
-    id: string,
-    updateSpecializationDto: UpdateSpecializationDto,
-    logo: Express.Multer.File,
-  ) {
+  async update(id: string, updateSpecializationDto: UpdateSpecializationDto) {
     try {
       const oldData = await this.findById(id);
 
@@ -167,11 +158,11 @@ export class SpecializationService {
       }
 
       const newSpecialization = new Specialization();
+
       newSpecialization.name = updateSpecializationDto.name;
 
-      if (logo) {
-        const baseUrl = this.configService.get<string>('BASE_URL');
-        newSpecialization.logo = `${baseUrl}/images/specialization/${logo.filename}`;
+      if (updateSpecializationDto.logo) {
+        newSpecialization.logo = updateSpecializationDto.logo;
       }
 
       await this.specializationRepository.update(id, newSpecialization);

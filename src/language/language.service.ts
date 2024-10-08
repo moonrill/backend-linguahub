@@ -5,7 +5,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateLanguageDto } from './dto/create-language.dto';
@@ -17,13 +16,9 @@ export class LanguageService {
   constructor(
     @InjectRepository(Language)
     private languageRepository: Repository<Language>,
-    private configService: ConfigService,
   ) {}
 
-  async create(
-    createLanguageDto: CreateLanguageDto,
-    flagImage: Express.Multer.File,
-  ) {
+  async create(createLanguageDto: CreateLanguageDto) {
     const existCode = await this.languageRepository.findOne({
       where: {
         code: createLanguageDto.code,
@@ -38,9 +33,7 @@ export class LanguageService {
 
     entity.name = createLanguageDto.name;
     entity.code = createLanguageDto.code;
-
-    const baseUrl = this.configService.get<string>('BASE_URL');
-    entity.flagImage = `${baseUrl}/images/flag/${flagImage.filename}`;
+    entity.flagImage = createLanguageDto.flagImage;
 
     const result = await this.languageRepository.insert(entity);
 
@@ -103,11 +96,7 @@ export class LanguageService {
     }
   }
 
-  async update(
-    id: string,
-    updateLanguageDto: UpdateLanguageDto,
-    flagImage: Express.Multer.File,
-  ) {
+  async update(id: string, updateLanguageDto: UpdateLanguageDto) {
     try {
       // Find old data
       const oldData = await this.findById(id);
@@ -119,9 +108,8 @@ export class LanguageService {
       langEntity.code = updateLanguageDto.code;
 
       // Check if new flag image is uploaded
-      if (flagImage) {
-        const baseUrl = this.configService.get<string>('BASE_URL');
-        langEntity.flagImage = `${baseUrl}/images/flag/${flagImage.filename}`;
+      if (updateLanguageDto.flagImage) {
+        langEntity.flagImage = updateLanguageDto.flagImage;
       } else {
         langEntity.flagImage = oldData.flagImage;
       }

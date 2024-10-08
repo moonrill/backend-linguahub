@@ -18,13 +18,9 @@ import {
   Query,
   Request,
   UploadedFile,
-  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import {
-  FileFieldsInterceptor,
-  FileInterceptor,
-} from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import { RejectTranslatorDto } from './dto/reject.dto';
 import { SearchTranslatorDto } from './dto/search-translator.dto';
@@ -161,30 +157,12 @@ export class TranslatorController {
 
   @Roles(Role.TRANSLATOR)
   @Put(':id')
-  @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'cv', maxCount: 1 },
-        { name: 'certificate', maxCount: 1 },
-      ],
-      translatorDocumentStorage,
-    ),
-  )
   async update(
-    @UploadedFiles()
-    documents: {
-      cv?: Express.Multer.File[];
-      certificate?: Express.Multer.File[];
-    },
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateTranslatorDto: UpdateTranslatorDto,
   ) {
     return {
-      data: await this.translatorService.update(
-        id,
-        updateTranslatorDto,
-        documents,
-      ),
+      data: await this.translatorService.update(id, updateTranslatorDto),
       statusCode: HttpStatus.OK,
       message: 'Success update translator',
     };

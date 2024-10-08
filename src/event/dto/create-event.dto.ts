@@ -20,4 +20,7 @@ export class CreateEventDto {
   @IsDateString()
   @IsAfterStart('startDate')
   endDate: Date;
+
+  @IsNotEmpty()
+  poster: string;
 }

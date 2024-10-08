@@ -1,6 +1,5 @@
 import { PaginationDto } from '#/utils/pagination.dto';
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, LessThan, MoreThan, Repository } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -13,10 +12,9 @@ export class EventService {
   constructor(
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
-    private configService: ConfigService,
   ) {}
 
-  async create(createEventDto: CreateEventDto, poster: Express.Multer.File) {
+  async create(createEventDto: CreateEventDto) {
     try {
       const entity = new Event();
 
@@ -24,9 +22,7 @@ export class EventService {
       entity.description = createEventDto.description;
       entity.startDate = createEventDto.startDate;
       entity.endDate = createEventDto.endDate;
-
-      const baseUrl = this.configService.get<string>('BASE_URL');
-      entity.poster = `${baseUrl}/images/poster/${poster.filename}`;
+      entity.poster = createEventDto.poster;
 
       const result = await this.eventRepository.insert(entity);
 
@@ -101,11 +97,7 @@ export class EventService {
     }
   }
 
-  async update(
-    id: string,
-    updateEventDto: UpdateEventDto,
-    poster: Express.Multer.File,
-  ) {
+  async update(id: string, updateEventDto: UpdateEventDto) {
     const oldData = await this.findById(id);
 
     const newEvent = new Event();
@@ -115,9 +107,8 @@ export class EventService {
     newEvent.startDate = updateEventDto.startDate;
     newEvent.endDate = updateEventDto.endDate;
 
-    if (poster) {
-      const baseUrl = this.configService.get<string>('BASE_URL');
-      newEvent.poster = `${baseUrl}/images/poster/${poster.filename}`;
+    if (updateEventDto.poster) {
+      newEvent.poster = updateEventDto.poster;
     } else {
       newEvent.poster = oldData.poster;
     }

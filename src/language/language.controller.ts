@@ -29,25 +29,16 @@ export class LanguageController {
 
   @Roles(Role.ADMIN)
   @Post()
-  @UseInterceptors(FileInterceptor('flag_image', uploadImage('flag')))
-  async create(
-    @Body() createLanguageDto: CreateLanguageDto,
-    @UploadedFile()
-    flagImage: Express.Multer.File,
-  ) {
-    if (!flagImage) {
-      throw new BadRequestException('Flag image is required');
-    }
-
+  async create(@Body() createLanguageDto: CreateLanguageDto) {
     return {
-      data: await this.languageService.create(createLanguageDto, flagImage),
+      data: await this.languageService.create(createLanguageDto),
       statusCode: HttpStatus.CREATED,
       message: 'Success create language',
     };
   }
 
   @Post('/upload/flagImage')
-  @UseInterceptors(FileInterceptor('flag_image', uploadImage('flag')))
+  @UseInterceptors(FileInterceptor('flagImage', uploadImage('flag')))
   async uploadFlagImage(@UploadedFile() flagImage: Express.Multer.File) {
     if (typeof flagImage === 'undefined') {
       throw new BadRequestException('Flag image is not uploaded');
@@ -82,15 +73,12 @@ export class LanguageController {
 
   @Roles(Role.ADMIN)
   @Put(':id')
-  @UseInterceptors(FileInterceptor('flag_image', uploadImage('flag')))
   async update(
-    @UploadedFile()
-    flagImage: Express.Multer.File,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateLanguageDto: UpdateLanguageDto,
   ) {
     return {
-      data: await this.languageService.update(id, updateLanguageDto, flagImage),
+      data: await this.languageService.update(id, updateLanguageDto),
       statusCode: HttpStatus.OK,
       message: 'Success update language',
     };

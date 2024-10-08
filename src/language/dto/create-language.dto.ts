@@ -6,4 +6,7 @@ export class CreateLanguageDto {
 
   @IsNotEmpty()
   code: string;
+
+  @IsNotEmpty()
+  flagImage: string;
 }
