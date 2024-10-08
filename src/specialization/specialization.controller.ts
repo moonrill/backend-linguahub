@@ -49,6 +49,18 @@ export class SpecializationController {
     };
   }
 
+  @Post('/upload/logo')
+  @UseInterceptors(FileInterceptor('logo', uploadImage('specialization')))
+  async uploadLogo(@UploadedFile() logo: Express.Multer.File) {
+    if (typeof logo === 'undefined') {
+      throw new BadRequestException('Flag image is not uploaded');
+    }
+
+    return {
+      logo: logo?.filename,
+    };
+  }
+
   @Public()
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {

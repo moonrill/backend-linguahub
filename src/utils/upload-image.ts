@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
+import { randomUUID } from 'crypto';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
@@ -10,10 +11,11 @@ export const uploadImage = (destination: string) => {
     storage: diskStorage({
       destination: path + destination,
       filename: (req, file, cb) => {
-        const timestamp = Date.now();
+        const uuid = randomUUID();
         const extension = extname(file.originalname);
+        const filename = uuid + extension;
 
-        cb(null, timestamp + extension);
+        cb(null, filename);
       },
     }),
     fileFilter: (req, file, cb) => {

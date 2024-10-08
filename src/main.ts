@@ -36,7 +36,7 @@ async function bootstrap() {
   const port = configService.get<number>('port');
 
   // TODO: Replace this
-  const hostname = '172.17.0.134';
+  const hostname = '0.0.0.0';
 
   await app.listen(port, hostname, () => {
     // logger.log(`Server listening on ${hostname}:${port}`);

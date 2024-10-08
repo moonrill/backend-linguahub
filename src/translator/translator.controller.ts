@@ -6,19 +6,25 @@ import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { translatorDocumentStorage } from '#/utils/upload-documents';
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Post,
   Put,
   Query,
   Request,
+  UploadedFile,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import { RejectTranslatorDto } from './dto/reject.dto';
 import { SearchTranslatorDto } from './dto/search-translator.dto';
@@ -124,6 +130,32 @@ export class TranslatorController {
       data: await this.translatorService.findById(id),
       statusCode: HttpStatus.OK,
       message: 'Success get translator by id',
+    };
+  }
+
+  @Public()
+  @Post('upload/cv')
+  @UseInterceptors(FileInterceptor('cv', translatorDocumentStorage))
+  async uploadCV(@UploadedFile() cv: Express.Multer.File) {
+    if (typeof cv?.filename === 'undefined') {
+      throw new BadRequestException('CV is not uploaded');
+    }
+
+    return {
+      cv: cv?.filename,
+    };
+  }
+
+  @Public()
+  @Post('upload/certificate')
+  @UseInterceptors(FileInterceptor('certificate', translatorDocumentStorage))
+  async uploadCertificate(@UploadedFile() certificate: Express.Multer.File) {
+    if (typeof certificate?.filename === 'undefined') {
+      throw new BadRequestException('Certificate is not uploaded');
+    }
+
+    return {
+      certificate: certificate?.filename,
     };
   }
 

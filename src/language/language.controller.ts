@@ -46,6 +46,18 @@ export class LanguageController {
     };
   }
 
+  @Post('/upload/flagImage')
+  @UseInterceptors(FileInterceptor('flag_image', uploadImage('flag')))
+  async uploadFlagImage(@UploadedFile() flagImage: Express.Multer.File) {
+    if (typeof flagImage === 'undefined') {
+      throw new BadRequestException('Flag image is not uploaded');
+    }
+
+    return {
+      flagImage: flagImage?.filename,
+    };
+  }
+
   @Public()
   @Get()
   async findAll(@Query() paginationDto: PaginationDto) {
