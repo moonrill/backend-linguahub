@@ -13,12 +13,13 @@ import {
   ParseUUIDPipe,
   Put,
   Query,
-  Request,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { UserCouponsQueryDto } from './dto/coupon.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -35,15 +36,24 @@ export class UsersController {
     };
   }
 
+  @Get(':id')
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return {
+      data: await this.usersService.findById(id),
+      statusCode: HttpStatus.OK,
+      message: 'Success get user by id',
+    };
+  }
+
   @Roles(Role.CLIENT)
-  @Get('coupons')
+  @Get(':id/coupons')
   async getCoupons(
-    @Request() req,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() paginationDto: PaginationDto,
     @Query() userCouponsQueryDto: UserCouponsQueryDto,
   ) {
     const result = await this.usersService.getUserCoupons(
-      req.user.id,
+      id,
       paginationDto,
       userCouponsQueryDto,
     );
@@ -56,14 +66,14 @@ export class UsersController {
   }
 
   @Roles(Role.CLIENT)
-  @Get('service-requests')
+  @Get(':id/service-requests')
   async getServiceRequests(
-    @Request() req,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() paginationDto: PaginationDto,
     @Query() queryDto: QueryServiceRequestDto,
   ) {
     const result = await this.usersService.getUserServiceRequests(
-      req.user.id,
+      id,
       paginationDto,
       queryDto,
     );
@@ -76,14 +86,14 @@ export class UsersController {
   }
 
   @Roles(Role.CLIENT)
-  @Get('bookings')
+  @Get(':id/bookings')
   async getBookings(
-    @Request() req,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() paginationDto: PaginationDto,
     @Query() queryDto: BookingQueryDto,
   ) {
     const result = await this.usersService.getUserBookings(
-      req.user.id,
+      id,
       paginationDto,
       queryDto,
     );
@@ -92,15 +102,6 @@ export class UsersController {
       ...result,
       statusCode: HttpStatus.OK,
       message: 'Success get user bookings',
-    };
-  }
-
-  @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return {
-      data: await this.usersService.findById(id),
-      statusCode: HttpStatus.OK,
-      message: 'Success get user by id',
     };
   }
 

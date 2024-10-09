@@ -21,6 +21,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import { RejectTranslatorDto } from './dto/reject.dto';
 import { SearchTranslatorDto } from './dto/search-translator.dto';
@@ -28,6 +29,7 @@ import { UpdateTranslatorDto } from './dto/update-translator.dto';
 import { TranslatorStatus } from './entities/translator.entity';
 import { TranslatorService } from './translator.service';
 
+@ApiTags('Translators')
 @Controller('translators')
 export class TranslatorController {
   constructor(private readonly translatorService: TranslatorService) {}

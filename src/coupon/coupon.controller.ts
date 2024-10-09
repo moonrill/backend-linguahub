@@ -14,11 +14,13 @@ import {
   Query,
   Request,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { CouponService } from './coupon.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
 import { CouponQueryDto } from './dto/query.dto';
 import { UpdateCouponDto } from './dto/update-coupon.dto';
 
+@ApiTags('Coupon')
 @Controller('coupons')
 export class CouponController {
   constructor(private readonly couponService: CouponService) {}

@@ -19,10 +19,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 import { CreateLanguageDto } from './dto/create-language.dto';
 import { UpdateLanguageDto } from './dto/update-language.dto';
 import { LanguageService } from './language.service';
 
+@ApiTags('Languages')
 @Controller('languages')
 export class LanguageController {
   constructor(private readonly languageService: LanguageService) {}

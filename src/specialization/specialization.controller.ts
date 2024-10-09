@@ -19,10 +19,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 import { CreateSpecializationDto } from './dto/create-specialization.dto';
 import { UpdateSpecializationDto } from './dto/update-specialization.dto';
 import { SpecializationService } from './specialization.service';
 
+@ApiTags('Specialization')
 @Controller('specializations')
 export class SpecializationController {
   constructor(private readonly specializationService: SpecializationService) {}

@@ -14,12 +14,14 @@ import {
   Query,
   Request,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
 import { QueryServiceRequestDto } from './dto/query.dto';
 import { RejectServiceRequestDto } from './dto/reject.dto';
 import { UpdateServiceRequestDto } from './dto/update-service-request.dto';
 import { ServiceRequestService } from './service-request.service';
 
+@ApiTags('Service Request')
 @Controller('service-requests')
 export class ServiceRequestController {
   constructor(private readonly serviceRequestService: ServiceRequestService) {}

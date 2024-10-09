@@ -74,6 +74,7 @@ export class ServiceRequestService {
       }
 
       const serviceRequestStatus = Object.values(BookingRequestStatus);
+
       if (status) {
         whereClause['requestStatus'] = status;
       } else {
