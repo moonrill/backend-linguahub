@@ -4,7 +4,6 @@ import { User } from '#/users/entities/user.entity';
 import { UsersService } from '#/users/users.service';
 import {
   BadRequestException,
-  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -36,24 +35,18 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     try {
-      const user = await this.userRepository.findOneOrFail({
+      const user = await this.userRepository.findOne({
         where: { email: loginDto.email },
-        relations: ['translator', 'role', 'userDetail'],
+        relations: {
+          role: true,
+          userDetail: true,
+          translator: true,
+        },
         select: ['id', 'email', 'password', 'role', 'translator', 'userDetail'],
       });
 
-      if (user.role.name === 'translator') {
-        if (user.translator.status === TranslatorStatus.PENDING) {
-          throw new ForbiddenException(
-            'Your registration is pending approval by the admin. You will be notified once your registration is approved.',
-          );
-        }
-
-        if (user.translator.status === TranslatorStatus.REJECTED) {
-          throw new ForbiddenException(
-            'Your registration has been rejected. Please check your email for more information.',
-          );
-        }
+      if (!user) {
+        throw new UnauthorizedException('Incorrect email or password provided');
       }
 
       // Check password
@@ -63,18 +56,35 @@ export class AuthService {
       );
 
       if (!isPasswordValid) {
-        throw new UnauthorizedException('Incorrect password provided');
+        throw new UnauthorizedException('Incorrect email or password provided');
+      }
+
+      if (user.role.name === 'translator') {
+        if (user.translator.status === TranslatorStatus.PENDING) {
+          throw new UnauthorizedException(
+            'Your registration is pending approval by the admin. You will be notified once your registration is approved.',
+          );
+        }
+
+        if (user.translator.status === TranslatorStatus.REJECTED) {
+          throw new UnauthorizedException(
+            'Your registration has been rejected. Please check your email for more information.',
+          );
+        }
       }
 
       const payload = {
         id: user.id,
         email: user.email,
-        fullName: user.userDetail.fullName,
         role: user.role.name,
       };
 
       if (user.role.name === 'translator') {
         payload['translatorId'] = user.translator.id;
+      }
+
+      if (user.role.name !== 'admin') {
+        payload['fullName'] = user.userDetail.fullName;
       }
 
       const accessToken = await this.jwtService.signAsync(payload);
