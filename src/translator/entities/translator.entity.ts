@@ -1,4 +1,5 @@
 import { Booking } from '#/booking/entities/booking.entity';
+import { Payment } from '#/payment/entities/payment.entity';
 import { Review } from '#/review/entities/review.entity';
 import { Service } from '#/service/entities/service.entity';
 import { User } from '#/users/entities/user.entity';
@@ -141,4 +142,7 @@ export class Translator {
 
   @OneToMany(() => Booking, (booking) => booking.translator)
   bookings: Booking[];
+
+  @OneToMany(() => Payment, (payment) => payment.translator)
+  payments: Payment[];
 }

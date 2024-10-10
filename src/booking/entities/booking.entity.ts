@@ -1,4 +1,5 @@
 import { Coupon } from '#/coupon/entities/coupon.entity';
+import { Payment } from '#/payment/entities/payment.entity';
 import { Review } from '#/review/entities/review.entity';
 import { Service } from '#/service/entities/service.entity';
 import { Translator } from '#/translator/entities/translator.entity';
@@ -10,6 +11,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -158,4 +160,7 @@ export class Booking {
   @OneToOne(() => Review, (review) => review.booking)
   @JoinColumn({ name: 'review_id' })
   review: Review;
+
+  @OneToMany(() => Payment, (payment) => payment.booking)
+  payments: Payment[];
 }

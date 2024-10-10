@@ -23,6 +23,7 @@ import { ReviewModule } from './review/review.module';
 import { BookingModule } from './booking/booking.module';
 import { ServiceRequestModule } from './service-request/service-request.module';
 import { MailModule } from './mail/mail.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -127,6 +128,7 @@ import { MailModule } from './mail/mail.module';
     BookingModule,
     ServiceRequestModule,
     MailModule,
+    PaymentModule,
   ],
 })
 export class AppModule {}

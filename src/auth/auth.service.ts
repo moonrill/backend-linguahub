@@ -85,6 +85,7 @@ export class AuthService {
 
       if (user.role.name !== 'admin') {
         payload['fullName'] = user.userDetail.fullName;
+        payload['profilePicture'] = user.userDetail.profilePicture;
       }
 
       const accessToken = await this.jwtService.signAsync(payload);

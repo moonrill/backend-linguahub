@@ -1,4 +1,5 @@
 import { Booking } from '#/booking/entities/booking.entity';
+import { Payment } from '#/payment/entities/payment.entity';
 import { Review } from '#/review/entities/review.entity';
 import { Role } from '#/role/entities/role.entity';
 import { Translator } from '#/translator/entities/translator.entity';
@@ -75,4 +76,7 @@ export class User {
 
   @OneToMany(() => UserCoupons, (userCoupons) => userCoupons.user)
   userCoupons: UserCoupons[];
+
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payments: Payment[];
 }
