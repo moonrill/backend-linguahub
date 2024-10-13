@@ -1,5 +1,6 @@
 import { BookingService } from '#/booking/booking.service';
 import { BookingQueryDto } from '#/booking/dto/query.dto';
+import { BookingStatus } from '#/booking/entities/booking.entity';
 import { LanguageService } from '#/language/language.service';
 import { MailService } from '#/mail/mail.service';
 import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
@@ -605,6 +606,63 @@ export class TranslatorService {
       } else {
         throw error;
       }
+    }
+  }
+
+  async findBestTranslators() {
+    try {
+      const data = await this.translatorRepository.find({
+        relations: [
+          'bookings',
+          'user.userDetail',
+          'translatorLanguages.language',
+          'translatorSpecializations.specialization',
+        ],
+      });
+
+      // Hitung jumlah booking dengan status COMPLETED untuk setiap translator
+      const translatorsWithCompletedBookings = data.map((t) => {
+        const {
+          translatorLanguages,
+          translatorSpecializations,
+          ...translator
+        } = t;
+
+        const completedBookingsCount = translator.bookings.filter(
+          (booking) => booking.bookingStatus === BookingStatus.COMPLETED,
+        ).length;
+
+        // Skor gabungan: kombinasi antara rating dan jumlah booking yang diselesaikan
+        const combinedScore =
+          translator.rating * 0.6 + completedBookingsCount * 0.4;
+
+        const languages = translatorLanguages.map(
+          (translatorLanguage) => translatorLanguage.language,
+        );
+
+        const specializations = translatorSpecializations.map(
+          (translatorSpecialization) => translatorSpecialization.specialization,
+        );
+
+        return {
+          ...translator,
+          languages,
+          specializations,
+          completedBookingsCount,
+          combinedScore,
+        };
+      });
+
+      // Urutkan berdasarkan skor gabungan dari yang tertinggi ke yang terendah
+      const sortedTranslators = translatorsWithCompletedBookings
+        .sort((a, b) => {
+          return b.combinedScore - a.combinedScore;
+        })
+        .slice(0, 3);
+
+      return sortedTranslators;
+    } catch (error) {
+      throw error;
     }
   }
 }

@@ -3,6 +3,10 @@ import { Event } from '#/event/entities/event.entity';
 import { Language } from '#/language/entities/language.entity';
 import { Role } from '#/role/entities/role.entity';
 import { Specialization } from '#/specialization/entities/specialization.entity';
+import { TranslatorLanguages } from '#/translator/entities/translator-languages.entity';
+import { TranslatorSpecializations } from '#/translator/entities/translator-specializations.entity';
+import { Translator } from '#/translator/entities/translator.entity';
+import { UserDetail } from '#/users/entities/user-detail.entity';
 import { User } from '#/users/entities/user.entity';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -15,6 +19,7 @@ import { eventMasterData } from './data/event';
 import { languageMasterData } from './data/language';
 import { roleMasterData } from './data/role';
 import { specializationMasterData } from './data/specialization';
+import { translatorMasterData } from './data/translator';
 import { userMasterData } from './data/user';
 
 @Injectable()
@@ -68,6 +73,7 @@ export class SeederService implements OnApplicationBootstrap {
 
         const newUser = new User();
 
+        newUser.id = user.id;
         newUser.email = user.email;
         newUser.password = hashedPassword;
         newUser.salt = salt;
@@ -76,6 +82,90 @@ export class SeederService implements OnApplicationBootstrap {
         await userRepository.insert(newUser);
 
         this.logger.log(`Created user ${user.email} with role ${user.role}`);
+      }
+    }
+  }
+
+  private async seedTranslators() {
+    const userRepository = this.dataSource.getRepository(User);
+    const userDetailRepository = this.dataSource.getRepository(UserDetail);
+    const languageRepository = this.dataSource.getRepository(Language);
+    const specializationRepository =
+      this.dataSource.getRepository(Specialization);
+    const translatorRepository = this.dataSource.getRepository(Translator);
+    const translatorLanguagesRepository =
+      this.dataSource.getRepository(TranslatorLanguages);
+    const translatorSpecializationsRepository = this.dataSource.getRepository(
+      TranslatorSpecializations,
+    );
+
+    for (const translator of translatorMasterData) {
+      const isExists = await translatorRepository.findOneBy({
+        id: translator.id,
+      });
+
+      if (!isExists) {
+        const user = await userRepository.findOneBy({ id: translator.userId });
+
+        const newUserDetail = new UserDetail();
+
+        newUserDetail.fullName = translator.fullName;
+        newUserDetail.gender = translator.gender;
+        newUserDetail.dateOfBirth = translator.dateOfBirth;
+        newUserDetail.phoneNumber = translator.phoneNumber;
+        newUserDetail.province = translator.province;
+        newUserDetail.city = translator.city;
+        newUserDetail.district = translator.district;
+        newUserDetail.subDistrict = translator.subDistrict;
+        newUserDetail.street = translator.street;
+
+        await userDetailRepository.insert(newUserDetail);
+
+        user.userDetail = newUserDetail;
+
+        userRepository.update(user.id, user);
+
+        const newTranslator = new Translator();
+
+        newTranslator.id = translator.id;
+        newTranslator.user = user;
+        newTranslator.yearsOfExperience = translator.yearsOfExperience;
+        newTranslator.portfolioLink = translator.portfolioLink;
+        newTranslator.bank = translator.bank;
+        newTranslator.bankAccountNumber = translator.bankAccountNumber;
+        newTranslator.rating = translator.rating;
+        newTranslator.reviewsCount = translator.reviewsCount;
+        newTranslator.status = translator.status;
+
+        await translatorRepository.insert(newTranslator);
+
+        for (const languageId of translator.languages) {
+          const language = await languageRepository.findOneBy({
+            id: languageId,
+          });
+
+          const newTranslatorLanguage = new TranslatorLanguages();
+
+          newTranslatorLanguage.language = language;
+          newTranslatorLanguage.translator = newTranslator;
+
+          await translatorLanguagesRepository.insert(newTranslatorLanguage);
+        }
+
+        for (const specializationId of translator.specializations) {
+          const specialization = await specializationRepository.findOneBy({
+            id: specializationId,
+          });
+
+          const newTranslatorSpecialization = new TranslatorSpecializations();
+
+          newTranslatorSpecialization.specialization = specialization;
+          newTranslatorSpecialization.translator = newTranslator;
+
+          await translatorSpecializationsRepository.insert(
+            newTranslatorSpecialization,
+          );
+        }
       }
     }
   }
@@ -117,6 +207,7 @@ export class SeederService implements OnApplicationBootstrap {
     await this.insertIfNotExist(Event, eventMasterData);
     await this.seedUser();
     await this.seedCoupons();
+    await this.seedTranslators();
   }
 
   async onApplicationBootstrap() {

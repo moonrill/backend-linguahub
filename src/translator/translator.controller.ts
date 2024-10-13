@@ -122,6 +122,16 @@ export class TranslatorController {
   }
 
   @Public()
+  @Get('best')
+  async getBestTranslator() {
+    return {
+      data: await this.translatorService.findBestTranslators(),
+      statusCode: HttpStatus.OK,
+      message: 'Success get best translator',
+    };
+  }
+
+  @Public()
   @Get(':id')
   async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return {
