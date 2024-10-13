@@ -22,6 +22,7 @@ import {
   DataSource,
   EntityManager,
   EntityNotFoundError,
+  ILike,
   Repository,
 } from 'typeorm';
 import { CreateTranslatorDto } from './dto/create-translator.dto';
@@ -337,10 +338,10 @@ export class TranslatorService {
           services: {
             status: ServiceStatus.ACTIVE,
             sourceLanguage: {
-              id: searchTranslatorDto.sourceLanguageId,
+              name: ILike(`%${searchTranslatorDto.sourceLanguage}%`),
             },
             targetLanguage: {
-              id: searchTranslatorDto.targetLanguageId,
+              name: ILike(`%${searchTranslatorDto.sourceLanguage}%`),
             },
           },
         },
@@ -359,9 +360,10 @@ export class TranslatorService {
         const { services, ...detail } = translator;
         const relevantServices = services.filter(
           (service) =>
-            service.sourceLanguage.id ===
-              searchTranslatorDto.sourceLanguageId &&
-            service.targetLanguage.id === searchTranslatorDto.targetLanguageId,
+            service.sourceLanguage.name.toLowerCase() ===
+              searchTranslatorDto.sourceLanguage.toLowerCase() &&
+            service.targetLanguage.name.toLowerCase() ===
+              searchTranslatorDto.targetLanguage.toLowerCase(),
         );
 
         return {

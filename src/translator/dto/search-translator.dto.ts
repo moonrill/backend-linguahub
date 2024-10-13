@@ -8,10 +8,10 @@ export enum TranslatorSortBy {
 
 export class SearchTranslatorDto {
   @IsNotEmpty()
-  sourceLanguageId: string;
+  sourceLanguage: string;
 
   @IsNotEmpty()
-  targetLanguageId: string;
+  targetLanguage: string;
 
   @IsNotEmpty()
   @IsEnum(TranslatorSortBy)
