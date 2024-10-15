@@ -23,7 +23,6 @@ import {
   DataSource,
   EntityManager,
   EntityNotFoundError,
-  ILike,
   Repository,
 } from 'typeorm';
 import { CreateTranslatorDto } from './dto/create-translator.dto';
@@ -234,10 +233,14 @@ export class TranslatorService {
         take: limit,
         relations: [
           'user.userDetail',
+          'services',
           'translatorLanguages.language',
           'translatorSpecializations.specialization',
           'reviews',
         ],
+        order: {
+          reviewsCount: 'DESC',
+        },
       });
 
       const translators = data.map((translator) =>
@@ -259,29 +262,29 @@ export class TranslatorService {
   }
 
   destructTranslator(translator: Translator) {
-    const { translatorLanguages, translatorSpecializations, user, ...detail } =
+    const { translatorLanguages, translatorSpecializations, ...detail } =
       translator;
 
     const languages = translatorLanguages.map((tl) => ({
-      id: tl.language.id,
-      name: tl.language.name,
-      flagImage: tl.language.flagImage,
+      ...tl.language,
     }));
     const specializations = translatorSpecializations.map((ts) => ({
-      id: ts.specialization.id,
-      name: ts.specialization.name,
+      ...ts.specialization,
     }));
-    const { userDetail, email } = user;
 
-    const { id, createdAt, updatedAt, deletedAt, ...restUserDetail } =
-      userDetail;
+    let lowestServicePrice;
 
-    const translatorDetail = { email, ...restUserDetail, ...detail };
+    if (detail.services.length > 0) {
+      lowestServicePrice = detail.services.reduce((prev, current) =>
+        prev.pricePerHour < current.pricePerHour ? prev : current,
+      ).pricePerHour;
+    }
 
     return {
-      ...translatorDetail,
+      ...detail,
       languages,
       specializations,
+      lowestServicePrice,
     };
   }
 
@@ -331,88 +334,68 @@ export class TranslatorService {
   ) {
     try {
       const { page, limit } = paginationDto;
-      const [data, total] = await this.translatorRepository.findAndCount({
-        skip: (page - 1) * limit,
-        take: limit,
-        where: {
-          status: TranslatorStatus.APPROVED,
-          services: {
-            status: ServiceStatus.ACTIVE,
-            sourceLanguage: {
-              name: ILike(`%${searchTranslatorDto.sourceLanguage}%`),
-            },
-            targetLanguage: {
-              name: ILike(`%${searchTranslatorDto.sourceLanguage}%`),
-            },
-          },
-        },
-        relations: [
-          'user.userDetail',
-          'services',
-          'services.sourceLanguage',
-          'services.targetLanguage',
-          'translatorLanguages.language',
+
+      // Query to filter and sort at database level
+      const query = this.translatorRepository
+        .createQueryBuilder('translator')
+        .leftJoinAndSelect('translator.user', 'user')
+        .leftJoinAndSelect('user.userDetail', 'userDetail')
+        .leftJoinAndSelect('translator.services', 'services')
+        .leftJoinAndSelect('services.sourceLanguage', 'sourceLanguage')
+        .leftJoinAndSelect('services.targetLanguage', 'targetLanguage')
+        .leftJoinAndSelect(
+          'translator.translatorLanguages',
+          'translatorLanguages',
+        )
+        .leftJoinAndSelect('translatorLanguages.language', 'language')
+        .leftJoinAndSelect(
+          'translator.translatorSpecializations',
+          'translatorSpecializations',
+        )
+        .leftJoinAndSelect(
           'translatorSpecializations.specialization',
-          'reviews',
-        ],
-      });
+          'specialization',
+        )
+        .leftJoinAndSelect('translator.reviews', 'reviews')
+        .where('translator.status = :status', {
+          status: TranslatorStatus.APPROVED,
+        })
+        .andWhere('services.status = :serviceStatus', {
+          serviceStatus: ServiceStatus.ACTIVE,
+        })
+        .andWhere('sourceLanguage.name ILIKE :sourceLanguage', {
+          sourceLanguage: `%${searchTranslatorDto.sourceLanguage}%`,
+        })
+        .andWhere('targetLanguage.name ILIKE :targetLanguage', {
+          targetLanguage: `%${searchTranslatorDto.targetLanguage}%`,
+        });
 
-      const translatorWithServices = data.map((translator) => {
-        const { services, ...detail } = translator;
-        const relevantServices = services.filter(
-          (service) =>
-            service.sourceLanguage.name.toLowerCase() ===
-              searchTranslatorDto.sourceLanguage.toLowerCase() &&
-            service.targetLanguage.name.toLowerCase() ===
-              searchTranslatorDto.targetLanguage.toLowerCase(),
-        );
-
-        return {
-          ...detail,
-          services: relevantServices,
-        };
-      });
-
-      const destructuredTranslators = translatorWithServices.map((translator) =>
-        this.destructTranslator(translator),
-      );
-
-      let sortedData = [];
-
+      // Apply sorting
       switch (searchTranslatorDto.sortBy) {
         case TranslatorSortBy.RATING:
-          sortedData = destructuredTranslators.sort((a, b) => {
-            if (a.rating > b.rating) return -1;
-            if (a.rating < b.rating) return 1;
-            return 0;
-          });
+          query.addOrderBy('translator.rating', 'DESC');
           break;
         case TranslatorSortBy.PRICE:
-          sortedData = destructuredTranslators.sort((a, b) => {
-            const aMinPrice = Math.min(
-              ...a.services.map((s) => s.pricePerHour),
-            );
-            const bMinPrice = Math.min(
-              ...b.services.map((s) => s.pricePerHour),
-            );
-            return aMinPrice - bMinPrice;
-          });
+          query.addOrderBy('services.pricePerHour', 'ASC');
           break;
-        case TranslatorSortBy.MOST_REVIEWS:
-          sortedData = destructuredTranslators.sort(
-            (a, b) => b.reviewsCount - a.reviewsCount,
-          );
+        case TranslatorSortBy.MOST_REVIEWED:
+          query.addOrderBy('translator.reviewsCount', 'DESC');
           break;
         default:
-          sortedData = destructuredTranslators;
+          query.addOrderBy('translator.rating', 'DESC');
       }
 
-      const totalPages = Math.ceil(total / limit);
+      // Pagination
+      query.skip((page - 1) * limit).take(limit);
 
-      const result = sortedData.map((translator) => {
-        const { services, reviews, ...rest } = translator;
-        return rest;
+      const [data, total] = await query.getManyAndCount();
+
+      // Prepare the final result
+      const result = data.map((translator) => {
+        return this.destructTranslator(translator);
       });
+
+      const totalPages = Math.ceil(total / limit);
 
       return {
         data: result,

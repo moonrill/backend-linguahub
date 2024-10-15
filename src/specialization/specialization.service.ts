@@ -1,5 +1,9 @@
+import { TranslatorSortBy } from '#/translator/dto/search-translator.dto';
 import { TranslatorSpecializations } from '#/translator/entities/translator-specializations.entity';
-import { Translator } from '#/translator/entities/translator.entity';
+import {
+  Translator,
+  TranslatorStatus,
+} from '#/translator/entities/translator.entity';
 import { TranslatorService } from '#/translator/translator.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
@@ -80,37 +84,82 @@ export class SpecializationService {
     }
   }
 
-  async findByName(name: string, paginationDto: PaginationDto) {
+  async findByName(
+    name: string,
+    paginationDto: PaginationDto,
+    sortBy?: TranslatorSortBy, // Optional sorting parameter
+  ) {
     try {
       const { page, limit } = paginationDto;
-      const [data, total] =
-        await this.translatorSpecializationRepository.findAndCount({
-          skip: (page - 1) * limit,
-          take: limit,
-          where: {
-            specialization: {
-              name: ILike(`%${name}%`),
-            },
-          },
-          relations: [
-            'translator',
-            'translator.user',
-            'translator.user.userDetail',
-            'translator.translatorLanguages.language',
-            'translator.translatorSpecializations.specialization',
-          ],
+
+      // Create a query using QueryBuilder
+      const query = this.translatorSpecializationRepository
+        .createQueryBuilder('translatorSpecialization')
+        .leftJoinAndSelect(
+          'translatorSpecialization.specialization',
+          'specialization',
+        )
+        .leftJoinAndSelect('translatorSpecialization.translator', 'translator')
+        .leftJoinAndSelect('translator.user', 'user')
+        .leftJoinAndSelect('user.userDetail', 'userDetail')
+        .leftJoinAndSelect('translator.services', 'services')
+        .leftJoinAndSelect('services.sourceLanguage', 'sourceLanguage')
+        .leftJoinAndSelect('services.targetLanguage', 'targetLanguage')
+        .leftJoinAndSelect(
+          'translator.translatorLanguages',
+          'translatorLanguages',
+        )
+        .leftJoinAndSelect('translatorLanguages.language', 'language')
+        .leftJoinAndSelect(
+          'translator.translatorSpecializations',
+          'translatorSpecializations',
+        )
+        .leftJoinAndSelect('translatorSpecializations.specialization', 'spec')
+        .leftJoinAndSelect('translator.reviews', 'reviews')
+        .where('specialization.name ILIKE :name', { name: `%${name}%` })
+        .andWhere('translator.status = :status', {
+          status: TranslatorStatus.APPROVED,
         });
 
-      const translators = data.map((ts) => ts.translator);
+      // Apply sorting based on sortBy parameter
+      switch (sortBy) {
+        case TranslatorSortBy.RATING:
+          query.orderBy('translator.rating', 'DESC');
+          break;
+        case TranslatorSortBy.PRICE:
+          query.orderBy('services.pricePerHour', 'ASC');
+          break;
+        case TranslatorSortBy.MOST_REVIEWED:
+          query.orderBy('translator.reviewsCount', 'DESC');
+          break;
+        default:
+          query.orderBy('translator.rating', 'DESC'); // Default sorting
+      }
 
-      const destructedTranslators = translators.map((translator) =>
-        this.translatorService.destructTranslator(translator),
+      // Apply pagination
+      query.skip((page - 1) * limit).take(limit);
+
+      // Execute the query
+      const [data, total] = await query.getManyAndCount();
+
+      if (data.length === 0 || !data[0].specialization) {
+        throw new NotFoundException('Specialization not found');
+      }
+
+      // Destructure translator data
+      const destructedTranslators = data.map((ts) =>
+        this.translatorService.destructTranslator(ts.translator),
       );
 
       const totalPages = Math.ceil(total / limit);
 
+      const result = {
+        ...data[0].specialization,
+        translators: destructedTranslators, // Sorted translators
+      };
+
       return {
-        data: destructedTranslators,
+        data: result,
         total,
         page,
         totalPages,
@@ -124,6 +173,62 @@ export class SpecializationService {
       }
     }
   }
+
+  // async findByName(name: string, paginationDto: PaginationDto) {
+  //   try {
+  //     const { page, limit } = paginationDto;
+  //     const [data, total] =
+  //       await this.translatorSpecializationRepository.findAndCount({
+  //         skip: (page - 1) * limit,
+  //         take: limit,
+  //         where: {
+  //           specialization: {
+  //             name: ILike(`%${name}%`),
+  //           },
+  //         },
+  //         relations: [
+  //           'specialization',
+  //           'translator',
+  //           'translator.user',
+  //           'translator.user.userDetail',
+  //           'translator.services',
+  //           'translator.translatorLanguages.language',
+  //           'translator.translatorSpecializations.specialization',
+  //         ],
+  //       });
+
+  //     if (data.length === 0 || !data[0].specialization) {
+  //       throw new NotFoundException('Specialization not found');
+  //     }
+
+  //     const translators = data.map((ts) => ts.translator);
+
+  //     const destructedTranslators = translators.map((translator) =>
+  //       this.translatorService.destructTranslator(translator),
+  //     );
+
+  //     const totalPages = Math.ceil(total / limit);
+
+  //     const result = {
+  //       ...data[0].specialization,
+  //       translators: destructedTranslators,
+  //     };
+
+  //     return {
+  //       data: result,
+  //       total,
+  //       page,
+  //       totalPages,
+  //       limit,
+  //     };
+  //   } catch (error) {
+  //     if (error instanceof EntityNotFoundError) {
+  //       throw new NotFoundException('Specialization not found');
+  //     } else {
+  //       throw error;
+  //     }
+  //   }
+  // }
 
   async findById(id: string) {
     try {

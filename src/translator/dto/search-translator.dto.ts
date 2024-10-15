@@ -3,7 +3,7 @@ import { IsEnum, IsNotEmpty } from 'class-validator';
 export enum TranslatorSortBy {
   PRICE = 'price',
   RATING = 'rating',
-  MOST_REVIEWS = 'mostReviews',
+  MOST_REVIEWED = 'mostReviewed',
 }
 
 export class SearchTranslatorDto {

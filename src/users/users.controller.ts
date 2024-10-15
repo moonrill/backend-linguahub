@@ -3,7 +3,9 @@ import { Roles } from '#/auth/roles.decorator';
 import { BookingQueryDto } from '#/booking/dto/query.dto';
 import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
+import { uploadImage } from '#/utils/upload-image';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -11,9 +13,13 @@ import {
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Post,
   Put,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { UserCouponsQueryDto } from './dto/coupon.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -102,6 +108,22 @@ export class UsersController {
       ...result,
       statusCode: HttpStatus.OK,
       message: 'Success get user bookings',
+    };
+  }
+
+  @Post('upload/profile-picture')
+  @UseInterceptors(
+    FileInterceptor('profilePicture', uploadImage('profile-picture')),
+  )
+  async uploadProfilePicture(
+    @UploadedFile() profilePicture: Express.Multer.File,
+  ) {
+    if (typeof profilePicture === 'undefined') {
+      throw new BadRequestException('Profile picture is not uploaded');
+    }
+
+    return {
+      profilePicture: profilePicture?.filename,
     };
   }
 

@@ -1,6 +1,7 @@
 import { Role } from '#/auth/role.enum';
 import { Roles } from '#/auth/roles.decorator';
 import { Public } from '#/auth/strategies/public.strategy';
+import { TranslatorSortBy } from '#/translator/dto/search-translator.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { uploadImage } from '#/utils/upload-image';
 import {
@@ -68,10 +69,12 @@ export class SpecializationController {
   async findOne(
     @Param('name') name: string,
     @Query() paginationDto: PaginationDto,
+    @Query() sortBy: TranslatorSortBy,
   ) {
     const result = await this.specializationService.findByName(
       name,
       paginationDto,
+      sortBy,
     );
 
     return {
