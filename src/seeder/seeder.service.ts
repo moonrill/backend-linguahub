@@ -109,6 +109,7 @@ export class SeederService implements OnApplicationBootstrap {
 
         const newUserDetail = new UserDetail();
 
+        newUserDetail.profilePicture = translator.profilePicture;
         newUserDetail.fullName = translator.fullName;
         newUserDetail.gender = translator.gender;
         newUserDetail.dateOfBirth = translator.dateOfBirth;
@@ -136,6 +137,11 @@ export class SeederService implements OnApplicationBootstrap {
         newTranslator.rating = translator.rating;
         newTranslator.reviewsCount = translator.reviewsCount;
         newTranslator.status = translator.status;
+        newTranslator.bio = translator.bio;
+
+        user.translator = newTranslator;
+
+        userRepository.update(user.id, user);
 
         await translatorRepository.insert(newTranslator);
 

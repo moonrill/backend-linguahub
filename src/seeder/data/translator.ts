@@ -4,6 +4,7 @@ import { Gender } from '#/users/entities/user-detail.entity';
 export const translatorMasterData = [
   {
     id: '5942a8cb-f663-4b49-8bc3-18d0c26a0e8a',
+    profilePicture: '778cb1a7-ae17-4359-bcdf-89e42b0027be.jpeg',
     userId: 'c2683c0d-2736-4881-83d0-bf03342a9c8c',
     fullName: 'Tom Holland',
     gender: Gender.MALE,
@@ -21,6 +22,7 @@ export const translatorMasterData = [
     status: TranslatorStatus.APPROVED,
     rating: 4.5,
     reviewsCount: 20,
+    bio: 'Passionate about bridging cultures through language. Expert in translation services, ensuring your message resonates across borders. 🌍✍️',
     languages: [
       'efa6b455-b6d1-4dcb-addc-a3e99ebbd5c4',
       '6116bd57-e7f1-4135-a998-91a12aa766aa',
@@ -34,6 +36,7 @@ export const translatorMasterData = [
   },
   {
     id: 'df1bbc8b-6cd9-45f4-97a8-f925ca92f4db',
+    profilePicture: 'b49db5ab-f416-4bc1-957b-cee1c06464cf.jpeg',
     userId: '321d0290-c67c-4e5c-b3ca-6cf95a734aa2',
     fullName: 'Bob Benny',
     gender: Gender.MALE,
@@ -51,6 +54,7 @@ export const translatorMasterData = [
     status: TranslatorStatus.APPROVED,
     rating: 3.9,
     reviewsCount: 50,
+    bio: "Dedicated to providing precise translation services that connect people and ideas. Let's break down language barriers together! 🌐📚",
     languages: [
       '7b873ff5-8e00-4b70-aea1-5b309fe4af24',
       'b2dc023b-3ad1-4130-8ac4-094d21f40d3b',
@@ -63,6 +67,7 @@ export const translatorMasterData = [
   },
   {
     id: 'ebf5f7e7-f8d5-46bc-8ca4-24a870a09e13',
+    profilePicture: 'c3f839f9-61b2-46be-8563-d0b8ac5b29a0.jpeg',
     userId: '70d094c0-6cfd-4eee-8952-b83ab22448ce',
     fullName: 'Alice Addams',
     gender: Gender.FEMALE,
@@ -80,6 +85,7 @@ export const translatorMasterData = [
     status: TranslatorStatus.APPROVED,
     rating: 5,
     reviewsCount: 31,
+    bio: 'Your go-to professional for accurate and nuanced translations. Committed to making your voice heard in any language. 🌏🗣️',
     languages: [
       '193d4082-3d96-4422-8375-9848bc718be2',
       'ee0cd7c4-c35c-46dd-ad6c-f02e40228d26',
