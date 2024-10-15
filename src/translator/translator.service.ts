@@ -305,22 +305,9 @@ export class TranslatorService {
         ],
       });
 
-      const reviewsData = data.reviews.map((review) => {
-        const { user, ...restReview } = review;
+      const destructedTranslator = this.destructTranslator(data);
 
-        return {
-          ...restReview,
-          client: {
-            fullName: user.userDetail.fullName,
-            profileImage: user.userDetail.profilePicture,
-          },
-        };
-      });
-
-      const { reviews, ...destructedTranslator } =
-        this.destructTranslator(data);
-
-      return { ...destructedTranslator, reviews: reviewsData };
+      return { ...destructedTranslator };
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Translator not found');
