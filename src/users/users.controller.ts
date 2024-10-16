@@ -16,6 +16,7 @@ import {
   Post,
   Put,
   Query,
+  Request,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -42,24 +43,15 @@ export class UsersController {
     };
   }
 
-  @Get(':id')
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return {
-      data: await this.usersService.findById(id),
-      statusCode: HttpStatus.OK,
-      message: 'Success get user by id',
-    };
-  }
-
   @Roles(Role.CLIENT)
-  @Get(':id/coupons')
+  @Get('coupons')
   async getCoupons(
-    @Param('id', ParseUUIDPipe) id: string,
     @Query() paginationDto: PaginationDto,
     @Query() userCouponsQueryDto: UserCouponsQueryDto,
+    @Request() req,
   ) {
     const result = await this.usersService.getUserCoupons(
-      id,
+      req.user.id,
       paginationDto,
       userCouponsQueryDto,
     );
@@ -72,14 +64,14 @@ export class UsersController {
   }
 
   @Roles(Role.CLIENT)
-  @Get(':id/service-requests')
+  @Get('service-requests')
   async getServiceRequests(
-    @Param('id', ParseUUIDPipe) id: string,
     @Query() paginationDto: PaginationDto,
     @Query() queryDto: QueryServiceRequestDto,
+    @Request() req,
   ) {
     const result = await this.usersService.getUserServiceRequests(
-      id,
+      req.user.id,
       paginationDto,
       queryDto,
     );
@@ -92,14 +84,14 @@ export class UsersController {
   }
 
   @Roles(Role.CLIENT)
-  @Get(':id/bookings')
+  @Get('bookings')
   async getBookings(
-    @Param('id', ParseUUIDPipe) id: string,
     @Query() paginationDto: PaginationDto,
     @Query() queryDto: BookingQueryDto,
+    @Request() req,
   ) {
     const result = await this.usersService.getUserBookings(
-      id,
+      req.user.id,
       paginationDto,
       queryDto,
     );
@@ -108,6 +100,15 @@ export class UsersController {
       ...result,
       statusCode: HttpStatus.OK,
       message: 'Success get user bookings',
+    };
+  }
+
+  @Get(':id')
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return {
+      data: await this.usersService.findById(id),
+      statusCode: HttpStatus.OK,
+      message: 'Success get user by id',
     };
   }
 

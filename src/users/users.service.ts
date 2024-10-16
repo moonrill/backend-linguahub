@@ -255,10 +255,12 @@ export class UsersService {
       }
 
       const newUser = new User();
+
       newUser.email = updateUserDto.email;
       await this.usersRepository.update(id, newUser);
 
       const newUserDetail = new UserDetail();
+
       newUserDetail.fullName = updateUserDto.fullName;
       newUserDetail.gender = updateUserDto.gender;
       newUserDetail.dateOfBirth = updateUserDto.dateOfBirth;
@@ -308,6 +310,7 @@ export class UsersService {
           whereClause['isUsed'] = false;
           whereClause['coupon'] = {
             expiredAt: MoreThanOrEqual(new Date()),
+            status: CouponStatus.ACTIVE,
           };
           break;
         case UserCouponStatus.USED:
@@ -347,7 +350,7 @@ export class UsersService {
         order: orderBy,
         skip: (page - 1) * limit,
         take: limit,
-        relations: ['coupon'],
+        relations: ['coupon', 'coupon.event'],
       });
 
       const totalPages = Math.ceil(total / limit);

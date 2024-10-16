@@ -129,4 +129,17 @@ export class AuthService {
       throw error;
     }
   }
+
+  async getProfile(userId: string) {
+    try {
+      const user = await this.userRepository.findOneOrFail({
+        where: { id: userId },
+        relations: ['role', 'userDetail'],
+      });
+
+      return user;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

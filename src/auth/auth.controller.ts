@@ -50,7 +50,7 @@ export class AuthController {
   @Get('profile')
   async profile(@Request() req) {
     return {
-      data: req.user,
+      data: await this.authService.getProfile(req.user.id),
       statusCode: HttpStatus.OK,
       message: 'Success get profile',
     };
