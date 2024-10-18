@@ -1,6 +1,7 @@
 import { Role } from '#/auth/role.enum';
 import { Roles } from '#/auth/roles.decorator';
 import { BookingQueryDto } from '#/booking/dto/query.dto';
+import { PaymentQueryDto } from '#/payment/dto/query.dto';
 import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { uploadImage } from '#/utils/upload-image';
@@ -91,6 +92,26 @@ export class UsersController {
     @Request() req,
   ) {
     const result = await this.usersService.getUserBookings(
+      req.user.id,
+      paginationDto,
+      queryDto,
+    );
+
+    return {
+      ...result,
+      statusCode: HttpStatus.OK,
+      message: 'Success get user bookings',
+    };
+  }
+
+  @Roles(Role.CLIENT)
+  @Get('payments')
+  async getPayments(
+    @Query() paginationDto: PaginationDto,
+    @Query() queryDto: PaymentQueryDto,
+    @Request() req,
+  ) {
+    const result = await this.usersService.getUserPayments(
       req.user.id,
       paginationDto,
       queryDto,

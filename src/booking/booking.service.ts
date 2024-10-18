@@ -119,22 +119,13 @@ export class BookingService {
 
       const { translator, ...restData } = data;
 
-      const {
-        services,
-        specializations,
-        languages,
-        reviews,
-        ...restTranslator
-      } = this.translatorService.destructTranslator(data.translator);
-
-      const destructTranslator = {
-        ...restTranslator,
-        languages: languages.splice(0, 3),
-      };
+      const destructedTranslator = this.translatorService.destructTranslator(
+        data.translator,
+      );
 
       return {
         ...restData,
-        translator: destructTranslator,
+        translator: destructedTranslator,
       };
     } catch (error) {
       if (error instanceof EntityNotFoundError) {

@@ -1,4 +1,5 @@
 import { BookingModule } from '#/booking/booking.module';
+import { PaymentModule } from '#/payment/payment.module';
 import { Role } from '#/role/entities/role.entity';
 import { RoleModule } from '#/role/role.module';
 import { ServiceRequestModule } from '#/service-request/service-request.module';
@@ -17,6 +18,7 @@ import { UsersService } from './users.service';
     RoleModule,
     ServiceRequestModule,
     BookingModule,
+    PaymentModule,
     forwardRef(() => TranslatorModule),
     forwardRef(() => ServiceRequestModule),
   ],

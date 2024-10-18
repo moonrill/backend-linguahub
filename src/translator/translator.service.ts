@@ -274,7 +274,7 @@ export class TranslatorService {
 
     let lowestServicePrice;
 
-    if (detail.services.length > 0) {
+    if (detail.services) {
       lowestServicePrice = detail.services.reduce((prev, current) =>
         prev.pricePerHour < current.pricePerHour ? prev : current,
       ).pricePerHour;

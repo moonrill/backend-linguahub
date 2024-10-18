@@ -1,6 +1,8 @@
 import { BookingService } from '#/booking/booking.service';
 import { BookingQueryDto } from '#/booking/dto/query.dto';
 import { CouponStatus } from '#/coupon/entities/coupon.entity';
+import { PaymentQueryDto } from '#/payment/dto/query.dto';
+import { PaymentService } from '#/payment/payment.service';
 import { Role } from '#/role/entities/role.entity';
 import { RoleService } from '#/role/role.service';
 import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
@@ -57,6 +59,7 @@ export class UsersService {
     @Inject(forwardRef(() => ServiceRequestService))
     private serviceRequestService: ServiceRequestService,
     private bookingService: BookingService,
+    private paymentService: PaymentService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -395,6 +398,27 @@ export class UsersService {
       const user = await this.findById(userId);
 
       const result = await this.bookingService.findAll(
+        paginationDto,
+        queryDto,
+        'user',
+        user.id,
+      );
+
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getUserPayments(
+    userId: string,
+    paginationDto: PaginationDto,
+    queryDto: PaymentQueryDto,
+  ) {
+    try {
+      const user = await this.findById(userId);
+
+      const result = await this.paymentService.findAll(
         paginationDto,
         queryDto,
         'user',
