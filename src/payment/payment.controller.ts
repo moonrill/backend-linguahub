@@ -9,7 +9,9 @@ import {
   Post,
   Query,
   Request,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { PaymentQueryDto } from './dto/query.dto';
 import { PaymentService } from './payment.service';
 
@@ -48,6 +50,15 @@ export class PaymentController {
       statusCode: HttpStatus.OK,
       message: 'Success get all payments',
     };
+  }
+
+  @Public()
+  @Get('/invoice/:id')
+  async generateInvoice(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Res() res: Response,
+  ) {
+    return await this.paymentService.generateInvoice(id, res);
   }
 
   @Get(':id')

@@ -11,6 +11,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash, randomUUID } from 'crypto';
+import { Response } from 'express';
+import * as fs from 'fs/promises';
+import * as handlebars from 'handlebars';
+import * as path from 'path';
+import puppeteer from 'puppeteer';
 import { lastValueFrom } from 'rxjs';
 import { EntityNotFoundError, In, Repository } from 'typeorm';
 import { PaymentQueryDto, PaymentSortBy } from './dto/query.dto';
@@ -262,6 +267,103 @@ export class PaymentService {
         throw new NotFoundException('Payment not found');
       } else {
         throw e;
+      }
+    }
+  }
+
+  async generateInvoice(id: string, res: Response) {
+    try {
+      const payment = await this.paymentRepository.findOneOrFail({
+        where: { id },
+        relations: ['booking.service', 'user.userDetail'],
+      });
+
+      const templatePath = path.resolve(__dirname, 'templates', 'invoice.hbs');
+      const templateContent = await fs.readFile(templatePath, 'utf-8');
+
+      const template = handlebars.compile(templateContent);
+
+      const data = {
+        paymentId: payment.id,
+        paymentDate: payment.createdAt.toLocaleDateString('en-UK', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+        }),
+        clientName: payment.user.userDetail.fullName,
+        clientEmail: payment.user.email,
+        clientAddress: `${payment.user.userDetail.street}, ${payment.user.userDetail.city}, ${payment.user.userDetail.province}`,
+        clientPhone: payment.user.userDetail.phoneNumber,
+        bookingId: payment.booking.id,
+        bookingDate: payment.booking.bookingDate.toLocaleString('en-UK', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }),
+        serviceName: payment.booking.service.name,
+        serviceDuration: `${payment.booking.duration} Hours`,
+        servicePrice: `Rp${payment.booking.service.pricePerHour.toLocaleString(
+          'id-ID',
+        )}`,
+        amount: `Rp${payment.booking.serviceFee.toLocaleString('id-ID')}`,
+        systemFee: `Rp${payment.booking.systemFee.toLocaleString('id-ID')}`,
+        totalAmount: `Rp${payment.amount.toLocaleString('id-ID')}`,
+        paymentMethod: payment.paymentMethod,
+      };
+
+      if (payment.booking.discountAmount) {
+        data['discount'] = `Rp${payment.booking.discountAmount.toLocaleString(
+          'id-ID',
+        )}`;
+      }
+
+      const html = template(data);
+
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--allow-file-access-from-files',
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+        ],
+        timeout: 120000,
+      });
+
+      const page = await browser.newPage();
+
+      page.setDefaultNavigationTimeout(120000);
+
+      await page.setContent(html, {
+        waitUntil: 'networkidle0',
+        timeout: 120000,
+      });
+
+      const pdf = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' },
+      });
+
+      await browser.close();
+
+      const buffer = Buffer.from(pdf);
+
+      const filename = `invoice_${payment.id}.pdf`;
+
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename=${filename}`,
+      });
+
+      res.end(pdf);
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Payment not found');
+      } else {
+        throw error;
       }
     }
   }
