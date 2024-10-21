@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsUUID } from 'class-validator';
 
 export enum UserCouponStatus {
   AVAILABLE = 'available',
@@ -23,4 +23,8 @@ export class UserCouponsQueryDto {
 
   @IsOptional()
   order: 'ASC' | 'DESC' = 'DESC';
+
+  @IsOptional()
+  @IsUUID()
+  eventId: string;
 }

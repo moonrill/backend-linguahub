@@ -101,6 +101,7 @@ export class AuthService {
       const user = await this.userRepository.findOneOrFail({
         where: { id: userId },
         relations: ['role'],
+        select: ['id', 'password', 'salt', 'role'],
       });
       const isPasswordValid = await bcrypt.compare(
         changePasswordDto.oldPassword,
@@ -108,7 +109,7 @@ export class AuthService {
       );
 
       if (!isPasswordValid) {
-        throw new UnauthorizedException('Incorrect password provided');
+        throw new BadRequestException('Incorrect password provided');
       }
 
       if (changePasswordDto.newPassword !== changePasswordDto.confirmPassword) {

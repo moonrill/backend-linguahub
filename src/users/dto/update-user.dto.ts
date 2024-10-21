@@ -1,11 +1,8 @@
 import { Type } from 'class-transformer';
-import { IsDate, IsEmail, IsEnum, IsOptional } from 'class-validator';
+import { IsDate, IsEnum, IsOptional } from 'class-validator';
 import { Gender } from '../entities/user-detail.entity';
 
 export class UpdateUserDto {
-  @IsEmail()
-  email: string;
-
   @IsOptional()
   fullName: string;
 

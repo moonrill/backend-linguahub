@@ -9,6 +9,7 @@ import {
   Get,
   HttpStatus,
   Param,
+  ParseUUIDPipe,
   Post,
   Put,
   Query,
@@ -78,8 +79,9 @@ export class EventController {
     };
   }
 
+  @Public()
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return {
       data: await this.eventService.findById(id),
       statusCode: HttpStatus.OK,

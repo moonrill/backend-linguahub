@@ -143,15 +143,18 @@ export class PaymentService {
       const fraudStatus = data.fraud_status;
       let bookingStatus = null;
       let paymentStatus = null;
+      let paymentMethod = null;
 
       if (transactionStatus === 'capture') {
         if (fraudStatus === 'accept') {
           bookingStatus = BookingStatus.IN_PROGRESS;
           paymentStatus = PaymentStatus.PAID;
+          paymentMethod = data.payment_type;
         }
       } else if (transactionStatus === 'settlement') {
         bookingStatus = BookingStatus.IN_PROGRESS;
         paymentStatus = PaymentStatus.PAID;
+        paymentMethod = data.payment_type;
       } else if (
         transactionStatus === 'cancel' ||
         transactionStatus === 'deny' ||
@@ -162,6 +165,12 @@ export class PaymentService {
       } else if (transactionStatus === 'pending') {
         paymentStatus = PaymentStatus.PENDING;
         bookingStatus = BookingStatus.UNPAID;
+      }
+
+      if (paymentMethod) {
+        await this.paymentRepository.update(paymentId, {
+          paymentMethod,
+        });
       }
 
       await this.paymentRepository.update(paymentId, { status: paymentStatus });

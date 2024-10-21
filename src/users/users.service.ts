@@ -247,21 +247,6 @@ export class UsersService {
     try {
       const user = await this.findById(id);
 
-      const existEmail = await this.usersRepository.findOne({
-        where: { email: updateUserDto.email },
-      });
-
-      if (existEmail && existEmail.id !== id) {
-        throw new BadRequestException(
-          'This email is already in use. Please try a different one.',
-        );
-      }
-
-      const newUser = new User();
-
-      newUser.email = updateUserDto.email;
-      await this.usersRepository.update(id, newUser);
-
       const newUserDetail = new UserDetail();
 
       newUserDetail.fullName = updateUserDto.fullName;
@@ -300,13 +285,21 @@ export class UsersService {
       const user = await this.findById(userId);
 
       const { page, limit } = paginationDto;
-      const { status, sortBy, order } = userCouponsQueryDto;
+      const { status, sortBy, order, eventId } = userCouponsQueryDto;
 
       const whereClause = {
         user: {
           id: user.id,
         },
       };
+
+      if (eventId) {
+        whereClause['coupon'] = {
+          event: {
+            id: eventId,
+          },
+        };
+      }
 
       switch (status) {
         case UserCouponStatus.AVAILABLE:
