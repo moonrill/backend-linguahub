@@ -1,23 +1,9 @@
 import { IsAfterStart } from '#/utils/is-after-start.decorator';
 import { IsTodayOrFutureDate } from '#/utils/is-today-or-future-date.decorator';
 import { Type } from 'class-transformer';
-import {
-  IsDate,
-  IsNotEmpty,
-  IsOptional,
-  IsUUID,
-  Matches,
-} from 'class-validator';
+import { IsDate, IsNotEmpty, IsOptional, Matches } from 'class-validator';
 
 export class UpdateServiceRequestDto {
-  @IsOptional()
-  @IsUUID()
-  serviceId?: string;
-
-  @IsOptional()
-  @IsUUID()
-  couponId?: string;
-
   @IsNotEmpty()
   @IsDate()
   @Type(() => Date)

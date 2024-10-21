@@ -3,7 +3,6 @@ import { Roles } from '#/auth/roles.decorator';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   Controller,
-  Delete,
   Get,
   HttpStatus,
   Param,
@@ -50,7 +49,7 @@ export class BookingController {
     return await this.bookingService.completeBooking(id, req.user.id);
   }
 
-  @Delete(':id/cancel')
+  @Put(':id/cancel')
   async cancel(@Param('id', new ParseUUIDPipe()) id: string, @Request() req) {
     return await this.bookingService.cancelBooking(id, req.user.id);
   }

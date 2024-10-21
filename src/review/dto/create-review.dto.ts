@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, Max, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, Max, Min } from 'class-validator';
 
 export class CreateReviewDto {
   @IsNotEmpty()
@@ -9,6 +9,6 @@ export class CreateReviewDto {
   @Max(5)
   rating: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   comment: string;
 }

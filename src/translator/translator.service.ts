@@ -303,7 +303,17 @@ export class TranslatorService {
           'services.targetLanguage',
           'reviews.user.userDetail',
         ],
+        order: {
+          reviews: {
+            createdAt: 'DESC',
+          },
+          services: {
+            pricePerHour: 'ASC',
+          },
+        },
       });
+
+      data.reviews = data.reviews.slice(0, 5);
 
       const destructedTranslator = this.destructTranslator(data);
 

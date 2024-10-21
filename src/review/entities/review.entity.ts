@@ -24,6 +24,7 @@ export class Review {
 
   @Column({
     type: 'text',
+    nullable: true,
   })
   comment: string;
 

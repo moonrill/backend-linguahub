@@ -4,7 +4,6 @@ import { PaginationDto } from '#/utils/pagination.dto';
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpStatus,
   Param,
@@ -104,7 +103,7 @@ export class ServiceRequestController {
   }
 
   @Roles(Role.CLIENT)
-  @Delete(':id/cancel')
+  @Put(':id/cancel')
   async cancel(@Request() req, @Param('id', new ParseUUIDPipe()) id: string) {
     return await this.serviceRequestService.cancelRequest(id, req.user.id);
   }

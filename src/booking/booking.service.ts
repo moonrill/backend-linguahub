@@ -114,6 +114,7 @@ export class BookingService {
           'coupon',
           'user.userDetail',
           'review',
+          'review.user.userDetail',
         ],
       });
 

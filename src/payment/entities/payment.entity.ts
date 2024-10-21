@@ -79,6 +79,8 @@ export class Payment {
   @ManyToOne(() => Translator, (translator) => translator.payments)
   translator: Translator;
 
-  @ManyToOne(() => Booking, (booking) => booking.payments)
+  @ManyToOne(() => Booking, (booking) => booking.payments, {
+    onUpdate: 'CASCADE',
+  })
   booking: Booking;
 }

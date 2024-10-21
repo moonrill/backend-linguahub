@@ -69,10 +69,12 @@ export class ReviewService {
       await this.bookingRepository.save(booking);
 
       // Update translator rating
-      booking.translator.rating =
+      const newRating =
         (booking.translator.rating * booking.translator.reviewsCount +
           createReviewDto.rating) /
         (booking.translator.reviewsCount + 1);
+
+      booking.translator.rating = Number(newRating.toFixed(1));
       booking.translator.reviewsCount += 1;
       await this.translatorRepository.save(booking.translator);
 

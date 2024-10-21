@@ -157,7 +157,7 @@ export class Booking {
   @ManyToOne(() => Coupon, (coupon) => coupon.bookings)
   coupon: Coupon;
 
-  @OneToOne(() => Review, (review) => review.booking)
+  @OneToOne(() => Review, (review) => review.booking, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'review_id' })
   review: Review;
 

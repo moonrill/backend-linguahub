@@ -151,9 +151,12 @@ export class ServiceRequestService {
       newServiceRequest.requestStatus = BookingRequestStatus.PENDING;
 
       // Price
-      newServiceRequest.serviceFee =
-        service.pricePerHour * newServiceRequest.duration;
-      newServiceRequest.systemFee = 0.1 * newServiceRequest.serviceFee;
+      newServiceRequest.serviceFee = Math.round(
+        service.pricePerHour * newServiceRequest.duration,
+      );
+      newServiceRequest.systemFee = Math.round(
+        0.1 * newServiceRequest.serviceFee,
+      );
 
       // Total
       let totalPrice =
@@ -184,12 +187,12 @@ export class ServiceRequestService {
 
         await this.markCoupon(userCoupon, 'used');
 
-        newServiceRequest.discountAmount = discountAmount;
+        newServiceRequest.discountAmount = Math.round(discountAmount);
         newServiceRequest.coupon = coupon;
         totalPrice = totalPrice - discountAmount;
       }
 
-      newServiceRequest.totalPrice = totalPrice;
+      newServiceRequest.totalPrice = Math.round(totalPrice);
 
       const inserted = await this.bookingRepository.insert(newServiceRequest);
       const booking = await this.bookingRepository.findOneOrFail({
@@ -226,8 +229,9 @@ export class ServiceRequestService {
 
     const duration = end - start;
 
-    // Round up
-    return Math.round(duration * 60) / 60;
+    const rounded = Math.round(duration * 60) / 60;
+
+    return Number(rounded.toFixed(1));
   }
 
   private convertToDecimalHours(time: string) {
@@ -310,72 +314,16 @@ export class ServiceRequestService {
         updateServiceRequestDto.endAt,
       );
 
-      if (updateServiceRequestDto.serviceId) {
-        const service = await this.serviceService.findById(
-          updateServiceRequestDto.serviceId,
-        );
+      newServiceRequest.serviceFee = Math.round(
+        serviceRequest.service.pricePerHour * newServiceRequest.duration,
+      );
+      newServiceRequest.systemFee = Math.round(
+        0.1 * newServiceRequest.serviceFee,
+      );
 
-        if (service.translator.id !== serviceRequest.translator.id) {
-          throw new BadRequestException('Translator and service not match');
-        }
-
-        newServiceRequest.service = service;
-        newServiceRequest.serviceFee =
-          service.pricePerHour * newServiceRequest.duration;
-        newServiceRequest.systemFee = 0.1 * newServiceRequest.serviceFee;
-      }
-
-      let totalPrice =
-        newServiceRequest.serviceFee + newServiceRequest.systemFee;
-
-      if (updateServiceRequestDto.couponId) {
-        // Handle Old Coupon first
-        const { coupon: oldCoupon } = serviceRequest;
-
-        if (oldCoupon) {
-          const oldUserCoupon = await this.userCouponsRepository.findOne({
-            where: {
-              user: {
-                id: userId,
-              },
-              coupon: {
-                id: oldCoupon.id,
-              },
-            },
-          });
-
-          await this.markCoupon(oldUserCoupon, 'unused');
-        }
-
-        const coupon = await this.couponService.findById(
-          updateServiceRequestDto.couponId,
-        );
-
-        const userCoupon = await this.userCouponsRepository.findOne({
-          where: {
-            user: {
-              id: userId,
-            },
-            coupon: {
-              id: coupon.id,
-            },
-          },
-        });
-
-        this.validateUserCoupon(userCoupon);
-
-        this.couponService.checkCoupon(coupon, 'use');
-
-        const discountAmount = (coupon.discountPercentage / 100) * totalPrice;
-
-        await this.markCoupon(userCoupon, 'used');
-
-        newServiceRequest.discountAmount = discountAmount;
-        newServiceRequest.coupon = coupon;
-        totalPrice = totalPrice - discountAmount;
-      }
-
-      newServiceRequest.totalPrice = totalPrice;
+      newServiceRequest.totalPrice = Math.round(
+        newServiceRequest.serviceFee + newServiceRequest.systemFee,
+      );
 
       await this.bookingRepository.update(id, newServiceRequest);
 
@@ -405,6 +353,18 @@ export class ServiceRequestService {
         { id },
         { requestStatus: BookingRequestStatus.CANCELLED },
       );
+
+      // Restore Coupon
+      if (serviceRequest.coupon) {
+        const userCoupon = await this.userCouponsRepository.findOne({
+          where: {
+            user: { id: userId },
+            coupon: { id: serviceRequest.coupon.id },
+          },
+        });
+
+        await this.markCoupon(userCoupon, 'unused');
+      }
 
       return {
         statusCode: HttpStatus.OK,
