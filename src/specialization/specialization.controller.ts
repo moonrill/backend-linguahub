@@ -69,7 +69,7 @@ export class SpecializationController {
   async findOne(
     @Param('name') name: string,
     @Query() paginationDto: PaginationDto,
-    @Query() sortBy: TranslatorSortBy,
+    @Query('sortBy') sortBy: TranslatorSortBy,
   ) {
     const result = await this.specializationService.findByName(
       name,

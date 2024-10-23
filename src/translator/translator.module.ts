@@ -1,6 +1,7 @@
 import { BookingModule } from '#/booking/booking.module';
 import { Booking } from '#/booking/entities/booking.entity';
 import { LanguageModule } from '#/language/language.module';
+import { ReviewModule } from '#/review/review.module';
 import { ServiceRequestModule } from '#/service-request/service-request.module';
 import { SpecializationModule } from '#/specialization/specialization.module';
 import { User } from '#/users/entities/user.entity';
@@ -22,6 +23,7 @@ import { TranslatorService } from './translator.service';
       Booking,
     ]),
     LanguageModule,
+    ReviewModule,
     forwardRef(() => BookingModule),
     forwardRef(() => SpecializationModule),
     forwardRef(() => ServiceRequestModule),

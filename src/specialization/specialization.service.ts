@@ -123,17 +123,17 @@ export class SpecializationService {
 
       // Apply sorting based on sortBy parameter
       switch (sortBy) {
-        case TranslatorSortBy.RATING:
-          query.orderBy('translator.rating', 'DESC');
+        case 'rating':
+          query.addOrderBy('translator.rating', 'DESC');
           break;
-        case TranslatorSortBy.PRICE:
-          query.orderBy('services.pricePerHour', 'ASC');
+        case 'price':
+          query.addOrderBy('services.pricePerHour', 'ASC');
           break;
-        case TranslatorSortBy.MOST_REVIEWED:
-          query.orderBy('translator.reviewsCount', 'DESC');
+        case 'mostReviewed':
+          query.addOrderBy('translator.reviewsCount', 'DESC');
           break;
         default:
-          query.orderBy('translator.rating', 'DESC'); // Default sorting
+          query.addOrderBy('translator.rating', 'DESC');
       }
 
       // Apply pagination
@@ -173,62 +173,6 @@ export class SpecializationService {
       }
     }
   }
-
-  // async findByName(name: string, paginationDto: PaginationDto) {
-  //   try {
-  //     const { page, limit } = paginationDto;
-  //     const [data, total] =
-  //       await this.translatorSpecializationRepository.findAndCount({
-  //         skip: (page - 1) * limit,
-  //         take: limit,
-  //         where: {
-  //           specialization: {
-  //             name: ILike(`%${name}%`),
-  //           },
-  //         },
-  //         relations: [
-  //           'specialization',
-  //           'translator',
-  //           'translator.user',
-  //           'translator.user.userDetail',
-  //           'translator.services',
-  //           'translator.translatorLanguages.language',
-  //           'translator.translatorSpecializations.specialization',
-  //         ],
-  //       });
-
-  //     if (data.length === 0 || !data[0].specialization) {
-  //       throw new NotFoundException('Specialization not found');
-  //     }
-
-  //     const translators = data.map((ts) => ts.translator);
-
-  //     const destructedTranslators = translators.map((translator) =>
-  //       this.translatorService.destructTranslator(translator),
-  //     );
-
-  //     const totalPages = Math.ceil(total / limit);
-
-  //     const result = {
-  //       ...data[0].specialization,
-  //       translators: destructedTranslators,
-  //     };
-
-  //     return {
-  //       data: result,
-  //       total,
-  //       page,
-  //       totalPages,
-  //       limit,
-  //     };
-  //   } catch (error) {
-  //     if (error instanceof EntityNotFoundError) {
-  //       throw new NotFoundException('Specialization not found');
-  //     } else {
-  //       throw error;
-  //     }
-  //   }
-  // }
 
   async findById(id: string) {
     try {

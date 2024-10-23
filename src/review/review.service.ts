@@ -92,15 +92,32 @@ export class ReviewService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto, queryDto: ReviewQueryDto) {
+  async findAll(
+    paginationDto: PaginationDto,
+    queryDto: ReviewQueryDto,
+    translatorId?: string,
+  ) {
     try {
       const { page, limit } = paginationDto;
       const { date, rating } = queryDto;
 
       const whereClause = {};
+      const relations = [
+        'user.userDetail',
+        'booking',
+        'translator.user.userDetail',
+      ];
 
       if (rating) {
         whereClause['rating'] = rating;
+      }
+
+      if (translatorId) {
+        whereClause['translator'] = {
+          id: translatorId,
+        };
+
+        relations.splice(2, 1);
       }
 
       const [data, total] = await this.reviewRepository.findAndCount({
@@ -110,7 +127,7 @@ export class ReviewService {
         order: {
           createdAt: date,
         },
-        relations: ['booking', 'user.userDetail', 'translator.user.userDetail'],
+        relations: relations,
       });
 
       const totalPages = Math.ceil(total / limit);

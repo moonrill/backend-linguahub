@@ -3,6 +3,8 @@ import { BookingQueryDto } from '#/booking/dto/query.dto';
 import { BookingStatus } from '#/booking/entities/booking.entity';
 import { LanguageService } from '#/language/language.service';
 import { MailService } from '#/mail/mail.service';
+import { ReviewQueryDto } from '#/review/dto/query.dto';
+import { ReviewService } from '#/review/review.service';
 import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { ServiceRequestService } from '#/service-request/service-request.service';
 import { ServiceStatus } from '#/service/entities/service.entity';
@@ -50,6 +52,7 @@ export class TranslatorService {
     private mailService: MailService,
     @Inject(forwardRef(() => BookingService))
     private bookingService: BookingService,
+    private reviewService: ReviewService,
   ) {}
 
   private async getUser(
@@ -641,6 +644,24 @@ export class TranslatorService {
         .slice(0, 3);
 
       return sortedTranslators;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getTranslatorReviews(
+    translatorId: string,
+    queryDto: ReviewQueryDto,
+    paginationDto: PaginationDto,
+  ) {
+    try {
+      const result = await this.reviewService.findAll(
+        paginationDto,
+        queryDto,
+        translatorId,
+      );
+
+      return result;
     } catch (error) {
       throw error;
     }
