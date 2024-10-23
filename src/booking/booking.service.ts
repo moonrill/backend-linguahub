@@ -10,6 +10,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as fs from 'fs/promises';
+import { join } from 'path';
 import { EntityNotFoundError, In, Repository } from 'typeorm';
 import { BookingQueryDto, BookingSortBy } from './dto/query.dto';
 import {
@@ -191,6 +193,70 @@ export class BookingService {
       };
     } catch (error) {
       throw error;
+    }
+  }
+
+  async updateProof(id: string, proof: string) {
+    try {
+      const booking = await this.bookingRepository.findOneOrFail({
+        where: { id },
+      });
+
+      await this.bookingRepository.update(booking.id, {
+        proof,
+      });
+
+      return {
+        data: booking,
+        statusCode: HttpStatus.OK,
+        message: 'Success update proof',
+      };
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Booking not found');
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  async deleteProof(id: string) {
+    try {
+      const booking = await this.bookingRepository.findOneOrFail({
+        where: { id },
+      });
+
+      if (!booking.proof) {
+        throw new BadRequestException('Proof not found');
+      }
+
+      const filePath = join(
+        __dirname,
+        '..',
+        '..',
+        'uploads',
+        'images',
+        'proof',
+        booking.proof,
+      );
+
+      await fs.unlink(filePath);
+
+      await this.bookingRepository.update(booking.id, {
+        proof: null,
+      });
+
+      return {
+        data: booking,
+        statusCode: HttpStatus.OK,
+        message: 'Success delete proof',
+      };
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Booking not found');
+      } else {
+        throw error;
+      }
     }
   }
 }
