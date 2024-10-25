@@ -48,7 +48,7 @@ export class TranslatorController {
   }
 
   @Public()
-  @Get('/service')
+  @Get('search/service')
   async search(
     @Query() searchTranslatorDto: SearchTranslatorDto,
     @Query() paginationDto: PaginationDto,
@@ -79,6 +79,20 @@ export class TranslatorController {
       ...result,
       statusCode: HttpStatus.OK,
       message: 'Success get translator registration',
+    };
+  }
+
+  @Get('services')
+  async getServices(@Query() paginationDto: PaginationDto, @Request() req) {
+    const result = await this.translatorService.getServices(
+      paginationDto,
+      req.user.translatorId,
+    );
+
+    return {
+      ...result,
+      statusCode: HttpStatus.OK,
+      message: 'Success get translator services',
     };
   }
 

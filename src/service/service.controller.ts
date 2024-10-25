@@ -1,3 +1,5 @@
+import { Role } from '#/auth/role.enum';
+import { Roles } from '#/auth/roles.decorator';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
   Body,
@@ -64,6 +66,12 @@ export class ServiceController {
       statusCode: HttpStatus.OK,
       message: 'Success update service',
     };
+  }
+
+  @Roles(Role.TRANSLATOR)
+  @Put(':id/status')
+  async toggleStatus(@Param('id') id: string, @Request() req) {
+    return this.serviceService.toggleStatus(id, req.user.translatorId);
   }
 
   @Delete(':id')

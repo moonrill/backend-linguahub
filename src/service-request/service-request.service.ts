@@ -85,7 +85,7 @@ export class ServiceRequestService {
 
       switch (sortBy) {
         case BookingSortBy.DATE:
-          orderBy['bookingDate'] = order;
+          orderBy['createdAt'] = order;
           break;
         case BookingSortBy.PRICE:
           orderBy['totalPrice'] = order;

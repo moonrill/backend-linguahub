@@ -1,3 +1,4 @@
+import { Booking } from '#/booking/entities/booking.entity';
 import { LanguageModule } from '#/language/language.module';
 import { Translator } from '#/translator/entities/translator.entity';
 import { TranslatorModule } from '#/translator/translator.module';
@@ -9,7 +10,7 @@ import { ServiceService } from './service.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Service, Translator]),
+    TypeOrmModule.forFeature([Service, Translator, Booking]),
     forwardRef(() => TranslatorModule),
     LanguageModule,
   ],

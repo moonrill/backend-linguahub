@@ -1,3 +1,8 @@
+import {
+  Booking,
+  BookingRequestStatus,
+  BookingStatus,
+} from '#/booking/entities/booking.entity';
 import { LanguageService } from '#/language/language.service';
 import {
   Translator,
@@ -27,6 +32,8 @@ export class ServiceService {
     private serviceRepository: Repository<Service>,
     @InjectRepository(Translator)
     private translatorRepository: Repository<Translator>,
+    @InjectRepository(Booking)
+    private bookingRepository: Repository<Booking>,
     @Inject(forwardRef(() => TranslatorService))
     private translatorService: TranslatorService,
     private languageService: LanguageService,
@@ -163,14 +170,58 @@ export class ServiceService {
     }
   }
 
-  async toggleStatus(id: string) {
+  async toggleStatus(id: string, translatorId: string) {
     try {
       const service = await this.findById(id);
+
+      if (service.translator.id !== translatorId) {
+        throw new ForbiddenException(
+          'You are not authorized to perform this action',
+        );
+      }
+
+      // If service is currently active and will be deactivated
+      if (service.status === ServiceStatus.ACTIVE) {
+        // Check for any ongoing bookings
+        const activeBookings = await this.bookingRepository.find({
+          where: [
+            {
+              service: { id },
+              bookingStatus: BookingStatus.IN_PROGRESS,
+            },
+            {
+              service: { id },
+              bookingStatus: BookingStatus.UNPAID,
+            },
+            {
+              service: { id },
+              requestStatus: BookingRequestStatus.PENDING,
+            },
+          ],
+        });
+
+        // If there are any active bookings, prevent deactivation
+        if (activeBookings.length > 0) {
+          throw new BadRequestException(
+            'Cannot deactivate service: There are still ongoing bookings. Please wait until all bookings are completed.',
+          );
+        }
+      }
+
+      // Toggle the service status
       service.status =
         service.status === ServiceStatus.ACTIVE
           ? ServiceStatus.INACTIVE
           : ServiceStatus.ACTIVE;
+
       await this.serviceRepository.update(id, service);
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: `Service successfully ${
+          service.status === ServiceStatus.ACTIVE ? 'activated' : 'deactivated'
+        }`,
+      };
     } catch (error) {
       throw error;
     }

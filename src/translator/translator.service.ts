@@ -7,7 +7,7 @@ import { ReviewQueryDto } from '#/review/dto/query.dto';
 import { ReviewService } from '#/review/review.service';
 import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { ServiceRequestService } from '#/service-request/service-request.service';
-import { ServiceStatus } from '#/service/entities/service.entity';
+import { Service, ServiceStatus } from '#/service/entities/service.entity';
 import { SpecializationService } from '#/specialization/specialization.service';
 import { Translator } from '#/translator/entities/translator.entity';
 import { User } from '#/users/entities/user.entity';
@@ -43,6 +43,8 @@ export class TranslatorService {
   constructor(
     @InjectRepository(Translator)
     private translatorRepository: Repository<Translator>,
+    @InjectRepository(Service)
+    private serviceRepository: Repository<Service>,
     private dataSource: DataSource,
     private languageService: LanguageService,
     @Inject(forwardRef(() => SpecializationService))
@@ -662,6 +664,31 @@ export class TranslatorService {
       );
 
       return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getServices(paginationDto: PaginationDto, translatorId: string) {
+    try {
+      const { page, limit } = paginationDto;
+
+      const [data, total] = await this.serviceRepository.findAndCount({
+        skip: (page - 1) * limit,
+        take: limit,
+        where: { translator: { id: translatorId } },
+        relations: ['sourceLanguage', 'targetLanguage'],
+      });
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        data,
+        total,
+        totalPages,
+        limit,
+        page,
+      };
     } catch (error) {
       throw error;
     }
