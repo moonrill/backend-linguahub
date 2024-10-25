@@ -34,6 +34,9 @@ export class User {
   @Column()
   salt: string;
 
+  @Column({ name: 'google_calendar_token', nullable: true })
+  googleCalendarToken: string;
+
   @CreateDateColumn({
     type: 'timestamp with time zone',
     nullable: false,

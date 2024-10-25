@@ -1,4 +1,5 @@
 import { Booking } from '#/booking/entities/booking.entity';
+import { GoogleCalendarModule } from '#/google-calendar/google-calendar.module';
 import { Translator } from '#/translator/entities/translator.entity';
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
@@ -24,6 +25,7 @@ import { PaymentService } from './payment.service';
       }),
       inject: [ConfigService],
     }),
+    GoogleCalendarModule,
   ],
   controllers: [PaymentController],
   providers: [PaymentService],

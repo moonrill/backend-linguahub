@@ -24,6 +24,7 @@ import { BookingModule } from './booking/booking.module';
 import { ServiceRequestModule } from './service-request/service-request.module';
 import { MailModule } from './mail/mail.module';
 import { PaymentModule } from './payment/payment.module';
+import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
 
 @Module({
   imports: [
@@ -129,6 +130,7 @@ import { PaymentModule } from './payment/payment.module';
     ServiceRequestModule,
     MailModule,
     PaymentModule,
+    GoogleCalendarModule,
   ],
 })
 export class AppModule {}

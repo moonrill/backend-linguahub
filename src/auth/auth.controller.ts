@@ -1,3 +1,4 @@
+import { GoogleCalendarService } from '#/google-calendar/google-calendar.service';
 import { CreateUserDto } from '#/users/dto/create-user.dto';
 import {
   Body,
@@ -6,7 +7,9 @@ import {
   HttpStatus,
   Post,
   Put,
+  Query,
   Request,
+  Res,
   UploadedFiles,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -18,7 +21,10 @@ import { Public } from './strategies/public.strategy';
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly googleCalendarService: GoogleCalendarService,
+  ) {}
 
   @Public()
   @Post('register')
@@ -54,6 +60,38 @@ export class AuthController {
       statusCode: HttpStatus.OK,
       message: 'Success get profile',
     };
+  }
+
+  @Public()
+  @Get('google')
+  async google(@Query('email') email: string, @Res() res) {
+    const decoded = decodeURIComponent(email);
+    const url = await this.googleCalendarService.getAuthUrl(decoded);
+
+    res.redirect(url);
+  }
+
+  @Public()
+  @Get('google/redirect')
+  async googleRedirect(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() res,
+  ) {
+    try {
+      const loggedInUserEmail = JSON.parse(decodeURIComponent(state)).email;
+
+      await this.googleCalendarService.saveUserToken(code, loggedInUserEmail);
+
+      res.redirect('http://localhost:3000');
+    } catch (error) {
+      res.redirect(
+        `http://localhost:3000/error?message=${encodeURIComponent(
+          error.message,
+        )}`,
+      );
+      throw error;
+    }
   }
 
   @Put('change-password')

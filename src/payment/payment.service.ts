@@ -1,4 +1,5 @@
 import { Booking, BookingStatus } from '#/booking/entities/booking.entity';
+import { GoogleCalendarService } from '#/google-calendar/google-calendar.service';
 import { Translator } from '#/translator/entities/translator.entity';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { HttpService } from '@nestjs/axios';
@@ -32,6 +33,7 @@ export class PaymentService {
     private translatorRepository: Repository<Translator>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly googleCalendarService: GoogleCalendarService,
   ) {}
 
   async create(bookingId: string, userId: string) {
@@ -181,6 +183,28 @@ export class PaymentService {
       responseData = await this.paymentRepository.findOneOrFail({
         where: { id: paymentId },
       });
+
+      // Add Booking To Calendar
+      if (bookingStatus === BookingStatus.IN_PROGRESS) {
+        const booking = await this.bookingRepository.findOneOrFail({
+          where: { id: payment.booking.id },
+          relations: [
+            'translator.user.userDetail',
+            'user.userDetail',
+            'service.sourceLanguage',
+            'service.targetLanguage',
+          ],
+        });
+
+        await this.googleCalendarService.addBookingToCalendar(
+          'client',
+          booking,
+        );
+        await this.googleCalendarService.addBookingToCalendar(
+          'translator',
+          booking,
+        );
+      }
 
       return {
         statusCode: HttpStatus.OK,

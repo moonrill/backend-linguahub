@@ -1,3 +1,4 @@
+import { GoogleCalendarModule } from '#/google-calendar/google-calendar.module';
 import { Role } from '#/role/entities/role.entity';
 import { User } from '#/users/entities/user.entity';
 import { UsersModule } from '#/users/users.module';
@@ -28,6 +29,7 @@ import { RolesGuard } from './guards/roles.guard';
     }),
     TypeOrmModule.forFeature([User, Role]),
     UsersModule,
+    GoogleCalendarModule,
   ],
   controllers: [AuthController],
   providers: [
