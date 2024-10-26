@@ -165,6 +165,17 @@ export class TranslatorController {
     };
   }
 
+  @Get('languages')
+  async getTranslatorLanguages(@Request() req) {
+    return {
+      data: await this.translatorService.getTranslatorLanguages(
+        req.user.translatorId,
+      ),
+      statusCode: HttpStatus.OK,
+      message: 'Success get translator languages',
+    };
+  }
+
   @Public()
   @Get(':id')
   async findOne(@Param('id', new ParseUUIDPipe()) id: string) {

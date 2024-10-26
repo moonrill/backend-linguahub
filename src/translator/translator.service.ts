@@ -45,8 +45,8 @@ export class TranslatorService {
     private translatorRepository: Repository<Translator>,
     @InjectRepository(Service)
     private serviceRepository: Repository<Service>,
-    private dataSource: DataSource,
-    private languageService: LanguageService,
+    @InjectRepository(TranslatorLanguages)
+    private translatorLanguagesRepository: Repository<TranslatorLanguages>,
     @Inject(forwardRef(() => SpecializationService))
     private specializationService: SpecializationService,
     @Inject(forwardRef(() => ServiceRequestService))
@@ -54,7 +54,9 @@ export class TranslatorService {
     private mailService: MailService,
     @Inject(forwardRef(() => BookingService))
     private bookingService: BookingService,
+    private languageService: LanguageService,
     private reviewService: ReviewService,
+    private dataSource: DataSource,
   ) {}
 
   private async getUser(
@@ -689,6 +691,21 @@ export class TranslatorService {
         limit,
         page,
       };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getTranslatorLanguages(translatorId: string) {
+    try {
+      const data = await this.translatorLanguagesRepository.find({
+        where: { translator: { id: translatorId } },
+        relations: ['language'],
+      });
+
+      const languages = data.map((d) => d.language);
+
+      return languages;
     } catch (error) {
       throw error;
     }
