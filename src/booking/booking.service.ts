@@ -1,3 +1,4 @@
+import { PaymentService } from '#/payment/payment.service';
 import { TranslatorService } from '#/translator/translator.service';
 import { PaginationDto } from '#/utils/pagination.dto';
 import {
@@ -27,6 +28,7 @@ export class BookingService {
     private bookingRepository: Repository<Booking>,
     @Inject(forwardRef(() => TranslatorService))
     private translatorService: TranslatorService,
+    private paymentService: PaymentService,
   ) {}
 
   async findAll(
@@ -141,7 +143,10 @@ export class BookingService {
 
   async completeBooking(id: string, userId: string) {
     try {
-      const booking = await this.findById(id);
+      const booking = await this.bookingRepository.findOneOrFail({
+        where: { id },
+        relations: ['translator.user.userDetail'],
+      });
 
       if (booking.user.id !== userId) {
         throw new UnauthorizedException('Unauthorized user');
@@ -155,17 +160,23 @@ export class BookingService {
         bookingStatus: BookingStatus.COMPLETED,
       });
 
+      // Create payment for translator
+      await this.paymentService.createTranslatorPayment(booking);
+
       return {
         data: booking,
         statusCode: HttpStatus.OK,
         message: 'Success complete booking',
       };
     } catch (error) {
-      throw error;
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Booking not found');
+      } else {
+        throw error;
+      }
     }
   }
 
-  // TODO: Handle Refund
   async cancelBooking(id: string, userId: string) {
     try {
       const booking = await this.findById(id);
@@ -182,6 +193,8 @@ export class BookingService {
       if (disallowedStatus.includes(booking.bookingStatus)) {
         throw new BadRequestException('Booking cannot be cancelled');
       }
+
+      await this.paymentService.refundClientPayment(booking.id);
 
       await this.bookingRepository.update(booking.id, {
         bookingStatus: BookingStatus.CANCELLED,

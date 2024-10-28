@@ -2,6 +2,7 @@ import { Role } from '#/auth/role.enum';
 import { Roles } from '#/auth/roles.decorator';
 import { Public } from '#/auth/strategies/public.strategy';
 import { BookingQueryDto } from '#/booking/dto/query.dto';
+import { PaymentQueryDto } from '#/payment/dto/query.dto';
 import { ReviewQueryDto } from '#/review/dto/query.dto';
 import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
@@ -12,17 +13,22 @@ import {
   Controller,
   Get,
   HttpStatus,
+  NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
   Query,
   Request,
+  Res,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
+import * as fs from 'fs';
+import * as path from 'path';
 import { RegistrationQueryDto } from './dto/registration-query.dto';
 import { RejectTranslatorDto } from './dto/reject.dto';
 import { SearchTranslatorDto } from './dto/search-translator.dto';
@@ -174,6 +180,76 @@ export class TranslatorController {
       statusCode: HttpStatus.OK,
       message: 'Success get translator languages',
     };
+  }
+
+  @Get('payments')
+  async getTranslatorPayments(
+    @Request() req,
+    @Query() paginationDto: PaginationDto,
+    @Query() queryDto: PaymentQueryDto,
+  ) {
+    const result = await this.translatorService.getTranslatorPayments(
+      req.user.translatorId,
+      paginationDto,
+      queryDto,
+    );
+
+    return {
+      ...result,
+      statusCode: HttpStatus.OK,
+      message: 'Success get translator payments',
+    };
+  }
+
+  @Public()
+  @Get('certificates/:filename')
+  async getCertificate(
+    @Param('filename') filename: string,
+    @Res() res: Response,
+  ) {
+    if (!filename) {
+      throw new NotFoundException('Certificate not found');
+    }
+
+    const filePath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'uploads',
+      'documents',
+      'certificate',
+      filename,
+    );
+
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('Certificate not found');
+    }
+
+    res.sendFile(filePath);
+  }
+
+  @Public()
+  @Get('cv/:filename')
+  async getCV(@Param('filename') filename: string, @Res() res: Response) {
+    if (!filename) {
+      throw new NotFoundException('Certificate not found');
+    }
+
+    const filePath = path.join(
+      __dirname,
+      '..',
+      '..',
+      'uploads',
+      'documents',
+      'cv',
+      filename,
+    );
+
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('Certificate not found');
+    }
+
+    res.sendFile(filePath);
   }
 
   @Public()

@@ -1,8 +1,9 @@
 import { GoogleCalendarModule } from '#/google-calendar/google-calendar.module';
 import { Role } from '#/role/entities/role.entity';
+import { TranslatorModule } from '#/translator/translator.module';
 import { User } from '#/users/entities/user.entity';
 import { UsersModule } from '#/users/users.module';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
@@ -28,7 +29,8 @@ import { RolesGuard } from './guards/roles.guard';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User, Role]),
-    UsersModule,
+    forwardRef(() => UsersModule),
+    TranslatorModule,
     GoogleCalendarModule,
   ],
   controllers: [AuthController],

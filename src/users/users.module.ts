@@ -16,9 +16,8 @@ import { UsersService } from './users.service';
   imports: [
     TypeOrmModule.forFeature([User, UserDetail, Role, UserCoupons]),
     RoleModule,
-    ServiceRequestModule,
-    BookingModule,
     PaymentModule,
+    forwardRef(() => BookingModule),
     forwardRef(() => TranslatorModule),
     forwardRef(() => ServiceRequestModule),
   ],

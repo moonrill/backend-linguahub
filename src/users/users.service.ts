@@ -52,14 +52,15 @@ export class UsersService {
     private userDetailRepository: Repository<UserDetail>,
     @InjectRepository(UserCoupons)
     private userCouponsRepository: Repository<UserCoupons>,
-    private roleService: RoleService,
-    private dataSource: DataSource,
     @Inject(forwardRef(() => TranslatorService))
     private translatorService: TranslatorService,
     @Inject(forwardRef(() => ServiceRequestService))
     private serviceRequestService: ServiceRequestService,
+    @Inject(forwardRef(() => BookingService))
     private bookingService: BookingService,
+    private roleService: RoleService,
     private paymentService: PaymentService,
+    private dataSource: DataSource,
   ) {}
 
   async create(createUserDto: CreateUserDto) {

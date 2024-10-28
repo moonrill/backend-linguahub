@@ -8,7 +8,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityNotFoundError, In, Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewQueryDto } from './dto/query.dto';
 import { Review } from './entities/review.entity';
@@ -99,7 +99,7 @@ export class ReviewService {
   ) {
     try {
       const { page, limit } = paginationDto;
-      const { date, ratings } = queryDto;
+      const { date, rating } = queryDto;
 
       const whereClause = {};
       const relations = [
@@ -108,8 +108,8 @@ export class ReviewService {
         'translator.user.userDetail',
       ];
 
-      if (ratings && ratings.length > 0) {
-        whereClause['rating'] = In(ratings);
+      if (rating) {
+        whereClause['rating'] = rating;
       }
 
       if (translatorId) {

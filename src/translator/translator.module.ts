@@ -1,11 +1,13 @@
 import { BookingModule } from '#/booking/booking.module';
 import { Booking } from '#/booking/entities/booking.entity';
 import { LanguageModule } from '#/language/language.module';
+import { PaymentModule } from '#/payment/payment.module';
 import { ReviewModule } from '#/review/review.module';
 import { ServiceRequestModule } from '#/service-request/service-request.module';
 import { Service } from '#/service/entities/service.entity';
 import { SpecializationModule } from '#/specialization/specialization.module';
 import { User } from '#/users/entities/user.entity';
+import { UsersModule } from '#/users/users.module';
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TranslatorLanguages } from './entities/translator-languages.entity';
@@ -26,6 +28,8 @@ import { TranslatorService } from './translator.service';
     ]),
     LanguageModule,
     ReviewModule,
+    PaymentModule,
+    forwardRef(() => UsersModule),
     forwardRef(() => BookingModule),
     forwardRef(() => SpecializationModule),
     forwardRef(() => ServiceRequestModule),

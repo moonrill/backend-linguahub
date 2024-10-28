@@ -122,6 +122,58 @@ export class PaymentService {
     }
   }
 
+  async createTranslatorPayment(booking: Booking) {
+    try {
+      const uuid = randomUUID();
+      const payload = {
+        payment_type: 'bank_transfer',
+        transaction_details: {
+          order_id: uuid,
+          gross_amount: booking.serviceFee,
+        },
+        bank_transfer: {
+          bank: booking.translator.bank,
+          va_number: booking.translator.bankAccountNumber,
+        },
+        customer_details: {
+          name: booking.translator.user.userDetail.fullName,
+          email: booking.translator.user.email,
+          phone: booking.translator.user.userDetail.phoneNumber,
+        },
+        metadata: {
+          paymentType: PaymentType.TRANSLATOR,
+          bookingId: booking.id,
+          translatorId: booking.translator.id,
+        },
+      };
+
+      // const { data } = lastValueFrom(
+      //   this.httpService.post(
+      //     'https://app.sandbox.midtrans.com/snap/v2/charge',
+      //     payload,
+      //   ),
+      // );
+
+      // Create payment for translator
+      const newPayment = new Payment();
+
+      newPayment.id = uuid;
+      newPayment.booking = booking;
+      newPayment.translator = booking.translator;
+      newPayment.status = PaymentStatus.PENDING;
+      newPayment.amount = booking.serviceFee;
+      newPayment.paymentType = PaymentType.TRANSLATOR;
+
+      await this.paymentRepository.insert(newPayment);
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Booking not found');
+      } else {
+        throw error;
+      }
+    }
+  }
+
   async updatePaymentStatus(data: any) {
     try {
       const paymentId = data.order_id;
@@ -392,6 +444,39 @@ export class PaymentService {
       });
 
       res.end(pdf);
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Payment not found');
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  async refundClientPayment(id: string) {
+    try {
+      const payment = await this.paymentRepository.findOneOrFail({
+        where: {
+          booking: { id },
+          paymentType: PaymentType.CLIENT,
+        },
+      });
+
+      const payload = {
+        amount: payment.amount,
+        reason: 'Cancellation from client',
+      };
+
+      lastValueFrom(
+        this.httpService.post(
+          `https://api.sandbox.midtrans.com/v2/${payment.id}/refund`,
+          payload,
+        ),
+      );
+
+      await this.paymentRepository.update(payment.id, {
+        status: PaymentStatus.REFUND,
+      });
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Payment not found');

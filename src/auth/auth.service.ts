@@ -1,9 +1,12 @@
 import { TranslatorStatus } from '#/translator/entities/translator.entity';
+import { TranslatorService } from '#/translator/translator.service';
 import { CreateUserDto } from '#/users/dto/create-user.dto';
 import { User } from '#/users/entities/user.entity';
 import { UsersService } from '#/users/users.service';
 import {
   BadRequestException,
+  forwardRef,
+  Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -19,7 +22,9 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    private readonly userService: UsersService,
+    @Inject(forwardRef(() => UsersService))
+    private userService: UsersService,
+    private translatorService: TranslatorService,
     private jwtService: JwtService,
   ) {}
 
@@ -133,12 +138,30 @@ export class AuthService {
 
   async getProfile(userId: string) {
     try {
+      let result;
       const user = await this.userRepository.findOneOrFail({
         where: { id: userId },
-        relations: ['role', 'userDetail'],
+        relations: ['role', 'userDetail', 'translator'],
       });
 
-      return user;
+      result = {
+        ...user,
+      };
+
+      if (user.role.name === 'translator') {
+        const {
+          user: translatorUser,
+          reviews,
+          ...rest
+        } = await this.translatorService.findById(user.translator.id);
+
+        result = {
+          ...result,
+          translator: rest,
+        };
+      }
+
+      return result;
     } catch (error) {
       throw error;
     }
