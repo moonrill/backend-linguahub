@@ -180,6 +180,12 @@ export class UsersService {
     const [data, total] = await this.usersRepository.findAndCount({
       skip,
       take: limit,
+      where: {
+        role: {
+          name: 'client',
+        },
+      },
+      relations: ['userDetail', 'role'],
     });
 
     const totalPages = Math.ceil(total / limit);

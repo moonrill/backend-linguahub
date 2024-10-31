@@ -248,6 +248,9 @@ export class TranslatorService {
           'translatorSpecializations.specialization',
           'reviews',
         ],
+        where: {
+          status: TranslatorStatus.APPROVED,
+        },
         order: {
           reviewsCount: 'DESC',
         },
@@ -441,19 +444,31 @@ export class TranslatorService {
             status: TranslatorStatus.REJECTED,
           };
           break;
+        default:
+          whereClause = {
+            status: TranslatorStatus.PENDING,
+          };
       }
 
       const [data, total] = await this.translatorRepository.findAndCount({
         skip: (page - 1) * limit,
         take: limit,
         where: whereClause,
-        relations: ['user.userDetail'],
+        relations: [
+          'user.userDetail',
+          'translatorLanguages.language',
+          'translatorSpecializations.specialization',
+        ],
       });
 
       const totalPages = Math.ceil(total / limit);
 
+      const result = data.map((translator) => {
+        return this.destructTranslator(translator);
+      });
+
       return {
-        data,
+        data: result,
         total,
         page,
         totalPages,
@@ -485,6 +500,7 @@ export class TranslatorService {
 
       // Update the status and set the rejection reason if applicable
       const translatorEntity = new Translator();
+
       translatorEntity.status = status;
 
       if (status === TranslatorStatus.REJECTED) {
@@ -608,6 +624,9 @@ export class TranslatorService {
           'translatorLanguages.language',
           'translatorSpecializations.specialization',
         ],
+        where: {
+          status: TranslatorStatus.APPROVED,
+        },
       });
 
       // Hitung jumlah booking dengan status COMPLETED untuk setiap translator

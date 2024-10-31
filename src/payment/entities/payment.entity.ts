@@ -52,7 +52,9 @@ export class Payment {
   })
   paymentType: PaymentType;
 
-  @Column()
+  @Column({
+    nullable: true,
+  })
   token: string;
 
   @CreateDateColumn({

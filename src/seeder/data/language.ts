@@ -71,4 +71,10 @@ export const languageMasterData = [
     code: 'sa',
     flagImage: `sa.svg`,
   },
+  {
+    id: '0c50dcb6-ffe9-43c5-b790-2e6df6977b1a',
+    name: 'Sign Language',
+    code: 'sg',
+    flagImage: `sign.svg`,
+  },
 ];

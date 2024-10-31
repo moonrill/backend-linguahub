@@ -21,8 +21,8 @@ export class MailService {
       await this.mailService.sendMail({
         subject,
         // TODO: Change this
-        // to: translator.user.email,
-        to: 'arilramadani245@gmail.com',
+        to: translator.user.email,
+        // to: 'arilramadani245@gmail.com',
         template: 'translator-register',
         context: {
           subject,
@@ -43,11 +43,17 @@ export class MailService {
     serviceRequest: Booking,
   ) {
     try {
+      let discount = null;
+
+      if (serviceRequest.discountAmount) {
+        discount = serviceRequest.discountAmount.toLocaleString('id-ID');
+      }
+
       await this.mailService.sendMail({
         subject,
         // TODO: Change this
-        // to: serviceRequest.user.email,
-        to: 'arilramadani245@gmail.com',
+        to: serviceRequest.user.email,
+        // to: 'gandarafathurrhman@gmail.com',
         template: 'service-request',
         context: {
           subject,
@@ -57,14 +63,14 @@ export class MailService {
           translatorName: serviceRequest.translator.user.userDetail.fullName,
           serviceName: serviceRequest.service.name,
           bookingDate: serviceRequest.bookingDate,
-          startAt: serviceRequest.startAt,
-          endAt: serviceRequest.endAt,
+          startAt: serviceRequest.startAt.slice(0, 5),
+          endAt: serviceRequest.endAt.slice(0, 5),
           duration: serviceRequest.duration,
           location: serviceRequest.location,
-          serviceFee: serviceRequest.serviceFee,
-          systemFee: serviceRequest.systemFee,
-          discountAmount: serviceRequest.discountAmount,
-          totalPrice: serviceRequest.totalPrice,
+          serviceFee: serviceRequest.serviceFee.toLocaleString('id-ID'),
+          systemFee: serviceRequest.systemFee.toLocaleString('id-ID'),
+          discountAmount: discount,
+          totalPrice: serviceRequest.totalPrice.toLocaleString('id-ID'),
           rejectionReason: serviceRequest.rejectionReason,
         },
       });

@@ -145,7 +145,7 @@ export class BookingService {
     try {
       const booking = await this.bookingRepository.findOneOrFail({
         where: { id },
-        relations: ['translator.user.userDetail'],
+        relations: ['translator.user.userDetail', 'user.userDetail'],
       });
 
       if (booking.user.id !== userId) {
