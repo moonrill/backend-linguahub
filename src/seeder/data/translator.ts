@@ -20,8 +20,8 @@ export const translatorMasterData = [
     bank: 'PT. BANK CENTRAL ASIA TBK.',
     bankAccountNumber: '1234567890',
     status: TranslatorStatus.APPROVED,
-    rating: 4.5,
-    reviewsCount: 20,
+    rating: 0,
+    reviewsCount: 0,
     bio: 'Passionate about bridging cultures through language. Expert in translation services, ensuring your message resonates across borders. 🌍✍️',
     languages: [
       'efa6b455-b6d1-4dcb-addc-a3e99ebbd5c4',
@@ -52,8 +52,8 @@ export const translatorMasterData = [
     bank: 'PT. BANK CENTRAL ASIA TBK.',
     bankAccountNumber: '1234567890',
     status: TranslatorStatus.APPROVED,
-    rating: 3.9,
-    reviewsCount: 50,
+    rating: 0,
+    reviewsCount: 0,
     bio: "Dedicated to providing precise translation services that connect people and ideas. Let's break down language barriers together! 🌐📚",
     languages: [
       '7b873ff5-8e00-4b70-aea1-5b309fe4af24',
@@ -83,8 +83,8 @@ export const translatorMasterData = [
     bank: 'PT. BANK CENTRAL ASIA TBK.',
     bankAccountNumber: '1234567890',
     status: TranslatorStatus.APPROVED,
-    rating: 5,
-    reviewsCount: 31,
+    rating: 0,
+    reviewsCount: 0,
     bio: 'Your go-to professional for accurate and nuanced translations. Committed to making your voice heard in any language. 🌏🗣️',
     languages: [
       '193d4082-3d96-4422-8375-9848bc718be2',

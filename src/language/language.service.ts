@@ -47,15 +47,50 @@ export class LanguageService {
   async findAll(paginationDto: PaginationDto) {
     try {
       const { page, limit } = paginationDto;
-      const [data, total] = await this.languageRepository.findAndCount({
-        skip: (page - 1) * limit,
-        take: limit,
+
+      const queryBuilder = this.languageRepository
+        .createQueryBuilder('language')
+        .leftJoin('language.sourceServices', 'sourceServices')
+        .leftJoin('language.targetServices', 'targetServices')
+        .select([
+          'language.id',
+          'language.name',
+          'language.code',
+          'language.flagImage',
+          'language.createdAt',
+          'language.updatedAt',
+        ])
+        .addSelect(
+          'COUNT(DISTINCT sourceServices.id) + COUNT(DISTINCT targetServices.id)',
+          'serviceCount',
+        )
+        .groupBy('language.id')
+        .orderBy('language.name', 'ASC');
+
+      const offset = (page - 1) * limit;
+
+      const total = await queryBuilder.getCount();
+
+      const rawData = await queryBuilder
+        .offset(offset)
+        .limit(limit)
+        .getRawAndEntities();
+
+      // Transform hasil untuk menggabungkan data entity dengan service count
+      const transformedData = rawData.entities.map((entity, index) => {
+        // Dapatkan service count dari raw result
+        const rawServiceCount = rawData.raw[index].serviceCount;
+
+        return {
+          ...entity,
+          serviceCount: parseInt(rawServiceCount) || 0,
+        };
       });
 
       const totalPages = Math.ceil(total / limit);
 
       return {
-        data,
+        data: transformedData,
         total,
         page,
         totalPages,

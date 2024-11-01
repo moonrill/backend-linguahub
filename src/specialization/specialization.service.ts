@@ -65,15 +65,49 @@ export class SpecializationService {
   async findAll(paginationDto: PaginationDto) {
     try {
       const { page, limit } = paginationDto;
-      const [data, total] = await this.specializationRepository.findAndCount({
-        skip: (page - 1) * limit,
-        take: limit,
+
+      const queryBuilder = this.specializationRepository
+        .createQueryBuilder('specialization')
+        .leftJoin(
+          'specialization.translatorSpecializations',
+          'translatorSpecializations',
+        )
+        .select([
+          'specialization.id',
+          'specialization.name',
+          'specialization.logo',
+          'specialization.createdAt',
+          'specialization.updatedAt',
+        ])
+        .addSelect(
+          'COUNT(DISTINCT translatorSpecializations.translator_id)',
+          'translatorCount',
+        )
+        .groupBy('specialization.id')
+        .orderBy('specialization.name', 'ASC');
+
+      const offset = (page - 1) * limit;
+
+      const total = await queryBuilder.getCount();
+
+      const rawData = await queryBuilder
+        .offset(offset)
+        .limit(limit)
+        .getRawAndEntities();
+
+      const transformedData = rawData.entities.map((entity, index) => {
+        const rawTranslatorCount = rawData.raw[index].translatorCount;
+
+        return {
+          ...entity,
+          translatorCount: parseInt(rawTranslatorCount) || 0,
+        };
       });
 
       const totalPages = Math.ceil(total / limit);
 
       return {
-        data,
+        data: transformedData,
         total,
         page,
         totalPages,

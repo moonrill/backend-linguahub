@@ -35,17 +35,24 @@ export class SeederService implements OnApplicationBootstrap {
     entity: EntityTarget<Entity>,
     data: Entity[],
   ) {
-    for (const datas of data) {
+    for (const item of data) {
+      // Pastikan setiap entitas memiliki ID sebelum melanjutkan
+      if (!('id' in item)) {
+        throw new Error('Each entity item must contain an "id" property.');
+      }
+
+      // Cek apakah entitas sudah ada berdasarkan ID
       const existingRecord = await this.dataSource.manager.findOne(entity, {
-        where: datas,
+        where: { id: (item as any).id },
       });
 
+      // Jika tidak ada entitas dengan ID tersebut, lakukan insert
       if (!existingRecord) {
         await this.dataSource
           .createQueryBuilder()
           .insert()
           .into(entity)
-          .values(datas)
+          .values(item)
           .execute();
       }
     }

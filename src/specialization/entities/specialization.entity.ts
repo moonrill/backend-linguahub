@@ -14,7 +14,7 @@ export class Specialization {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   @Column({
@@ -46,6 +46,9 @@ export class Specialization {
   @OneToMany(
     () => TranslatorSpecializations,
     (translatorSpecialization) => translatorSpecialization.specialization,
+    {
+      onDelete: 'CASCADE',
+    },
   )
   translatorSpecializations: TranslatorSpecializations[];
 }

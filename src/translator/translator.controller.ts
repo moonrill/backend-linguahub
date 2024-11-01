@@ -301,6 +301,19 @@ export class TranslatorController {
     };
   }
 
+  @Roles(Role.TRANSLATOR)
+  @Put(':id/bio')
+  async updateBio(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body('bio') bio: string,
+  ) {
+    return {
+      data: await this.translatorService.updateBio(id, bio),
+      statusCode: HttpStatus.OK,
+      message: 'Success update translator bio',
+    };
+  }
+
   @Roles(Role.ADMIN)
   @Put(':id/approve')
   async approve(@Param('id', new ParseUUIDPipe()) id: string) {

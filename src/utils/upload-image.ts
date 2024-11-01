@@ -19,9 +19,21 @@ export const uploadImage = (destination: string) => {
       },
     }),
     fileFilter: (req, file, cb) => {
-      if (!file.mimetype.match(/\/(jpg|jpeg|png|svg)$/)) {
-        cb(new BadRequestException('Only image files are allowed!'), false);
+      // Cek MIME type untuk gambar biasa
+      const isImage = file.mimetype.match(/^image\/(jpg|jpeg|png)$/);
+      // Cek MIME type untuk SVG
+      const isSvg = file.mimetype === 'image/svg+xml';
+
+      if (!isImage && !isSvg) {
+        cb(
+          new BadRequestException(
+            'Only image files (JPG, JPEG, PNG, SVG) are allowed!',
+          ),
+          false,
+        );
+        return;
       }
+
       cb(null, true);
     },
     limits: {

@@ -10,8 +10,8 @@ import {
   Query,
   Request,
   Res,
-  UploadedFiles,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -24,18 +24,12 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly googleCalendarService: GoogleCalendarService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Public()
   @Post('register')
-  async register(
-    @UploadedFiles()
-    documents: {
-      cv?: Express.Multer.File[];
-      certificate?: Express.Multer.File[];
-    },
-    @Body() createUserDto: CreateUserDto,
-  ) {
+  async register(@Body() createUserDto: CreateUserDto) {
     return {
       data: await this.authService.register(createUserDto),
       statusCode: HttpStatus.CREATED,
@@ -83,12 +77,12 @@ export class AuthController {
 
       await this.googleCalendarService.saveUserToken(code, loggedInUserEmail);
 
-      res.redirect('http://localhost:3000');
+      res.redirect(this.configService.get<string>('FRONTEND_URL'));
     } catch (error) {
       res.redirect(
-        `http://localhost:3000/error?message=${encodeURIComponent(
-          error.message,
-        )}`,
+        `${this.configService.get<string>(
+          'FRONTEND_URL',
+        )}/error?message=${encodeURIComponent(error.message)}`,
       );
       throw error;
     }

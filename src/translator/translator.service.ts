@@ -580,6 +580,22 @@ export class TranslatorService {
       }
 
       return this.dataSource.transaction(async (transactionEntityManager) => {
+        // Hapus semua languages yang ada
+        await transactionEntityManager
+          .createQueryBuilder()
+          .delete()
+          .from('translator_languages')
+          .where('translator_id = :translatorId', { translatorId: id })
+          .execute();
+
+        // Hapus semua specializations yang ada
+        await transactionEntityManager
+          .createQueryBuilder()
+          .delete()
+          .from('translator_specializations')
+          .where('translator_id = :translatorId', { translatorId: id })
+          .execute();
+
         const translatorEntity = new Translator();
 
         translatorEntity.yearsOfExperience =
@@ -747,6 +763,24 @@ export class TranslatorService {
       );
 
       return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateBio(id: string, bio: string) {
+    try {
+      const translator = await this.findById(id);
+
+      const translatorEntity = new Translator();
+
+      translatorEntity.bio = bio;
+
+      await this.translatorRepository.update(id, translatorEntity);
+
+      return this.translatorRepository.findOneOrFail({
+        where: { id },
+      });
     } catch (error) {
       throw error;
     }
