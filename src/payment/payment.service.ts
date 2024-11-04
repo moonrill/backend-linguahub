@@ -270,32 +270,31 @@ export class PaymentService {
   async findAll(
     paginationDto: PaginationDto,
     queryDto: PaymentQueryDto,
-    type?: 'user' | 'translator',
+    role?: 'user' | 'translator',
     id?: string,
   ) {
     try {
       const { page, limit } = paginationDto;
-      const { status, sortBy, order } = queryDto;
+      const { status, sortBy, order, type } = queryDto;
 
       const whereClause = {};
       const relations = [
         'booking.service.sourceLanguage',
         'booking.service.targetLanguage',
         'booking.translator.user.userDetail',
-        'translator.user.userDetail',
-        'user.userDetail',
+        'booking.user.userDetail',
       ];
 
-      if (type === 'user') {
+      if (role === 'user') {
         whereClause['user'] = {
           id,
         };
-        relations.splice(3, 1);
-      } else if (type === 'translator') {
+        // relations.splice(3, 1);
+      } else if (role === 'translator') {
         whereClause['translator'] = {
           id,
         };
-        relations.splice(2, 1);
+        // relations.splice(2, 1);
       }
 
       const paymentStatus = Object.values(PaymentStatus);
@@ -307,6 +306,10 @@ export class PaymentService {
       }
 
       const orderBy = {};
+
+      if (type) {
+        whereClause['paymentType'] = type;
+      }
 
       switch (sortBy) {
         case PaymentSortBy.DATE:
@@ -480,6 +483,29 @@ export class PaymentService {
     } catch (error) {
       if (error instanceof EntityNotFoundError) {
         throw new NotFoundException('Payment not found');
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  async updatePaymentProof(id: string, proof: string) {
+    try {
+      const payment = await this.paymentRepository.findOneOrFail({
+        where: { id },
+      });
+
+      await this.paymentRepository.update(id, {
+        proof,
+      });
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Success update proof',
+      };
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Booking not found');
       } else {
         throw error;
       }

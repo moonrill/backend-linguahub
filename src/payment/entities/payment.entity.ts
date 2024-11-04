@@ -57,6 +57,12 @@ export class Payment {
   })
   token: string;
 
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  proof: string;
+
   @CreateDateColumn({
     type: 'timestamp with time zone',
     nullable: false,

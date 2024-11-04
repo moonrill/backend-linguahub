@@ -264,6 +264,12 @@ export class SpecializationService {
 
       await this.specializationRepository.softDelete(id);
 
+      await this.translatorSpecializationRepository.softDelete({
+        specialization: {
+          id,
+        },
+      });
+
       return {
         statusCode: HttpStatus.OK,
         message: 'Success delete specialization',

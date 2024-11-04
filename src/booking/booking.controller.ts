@@ -50,7 +50,7 @@ export class BookingController {
   }
 
   @Put(':id/proof')
-  @UseInterceptors(FileInterceptor('proof', uploadImage('proof')))
+  @UseInterceptors(FileInterceptor('proof', uploadImage('proof/booking')))
   async uploadProof(
     @Param('id', new ParseUUIDPipe()) id: string,
     @UploadedFile() proof: Express.Multer.File,

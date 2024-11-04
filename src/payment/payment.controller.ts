@@ -1,16 +1,22 @@
 import { Public } from '#/auth/strategies/public.strategy';
 import { PaginationDto } from '#/utils/pagination.dto';
+import { uploadImage } from '#/utils/upload-image';
 import {
+  BadRequestException,
   Controller,
   Get,
   HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Request,
   Res,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { PaymentQueryDto } from './dto/query.dto';
 import { PaymentService } from './payment.service';
@@ -68,5 +74,18 @@ export class PaymentController {
       statusCode: HttpStatus.OK,
       message: 'Success get payment by id',
     };
+  }
+
+  @Put(':id/proof')
+  @UseInterceptors(FileInterceptor('proof', uploadImage('proof/payment')))
+  async uploadProof(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @UploadedFile() proof: Express.Multer.File,
+  ) {
+    if (typeof proof?.filename === 'undefined') {
+      throw new BadRequestException('Proof is not uploaded');
+    }
+
+    return await this.paymentService.updatePaymentProof(id, proof.filename);
   }
 }

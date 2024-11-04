@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional } from 'class-validator';
-import { PaymentStatus } from '../entities/payment.entity';
+import { PaymentStatus, PaymentType } from '../entities/payment.entity';
 
 export enum PaymentSortBy {
   DATE = 'date',
@@ -7,6 +7,10 @@ export enum PaymentSortBy {
 }
 
 export class PaymentQueryDto {
+  @IsOptional()
+  @IsEnum(PaymentType)
+  type: PaymentType;
+
   @IsOptional()
   @IsEnum(PaymentStatus)
   status: PaymentStatus;
