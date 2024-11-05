@@ -1,9 +1,12 @@
+import { Role } from '#/auth/role.enum';
+import { Roles } from '#/auth/roles.decorator';
 import { Public } from '#/auth/strategies/public.strategy';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { uploadImage } from '#/utils/upload-image';
 import {
   BadRequestException,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Param,
@@ -87,5 +90,22 @@ export class PaymentController {
     }
 
     return await this.paymentService.updatePaymentProof(id, proof.filename);
+  }
+
+  @Roles(Role.TRANSLATOR)
+  @Put(':id/complete')
+  async completePayment(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Request() req,
+  ) {
+    return await this.paymentService.completeTranslatorPayment(
+      id,
+      req.user.translatorId,
+    );
+  }
+
+  @Delete(':id/proof')
+  async deleteProof(@Param('id', new ParseUUIDPipe()) id: string) {
+    return await this.paymentService.deleteProof(id);
   }
 }

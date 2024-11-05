@@ -250,6 +250,7 @@ export class BookingService {
         'uploads',
         'images',
         'proof',
+        'booking',
         booking.proof,
       );
 

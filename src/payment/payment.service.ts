@@ -5,6 +5,7 @@ import { PaginationDto } from '#/utils/pagination.dto';
 import { HttpService } from '@nestjs/axios';
 import {
   BadRequestException,
+  ForbiddenException,
   HttpStatus,
   Injectable,
   NotFoundException,
@@ -509,6 +510,74 @@ export class PaymentService {
       } else {
         throw error;
       }
+    }
+  }
+
+  async deleteProof(id: string) {
+    try {
+      const payment = await this.paymentRepository.findOneOrFail({
+        where: { id },
+      });
+
+      if (!payment.proof) {
+        throw new BadRequestException('Proof not found');
+      }
+
+      const filePath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'uploads',
+        'images',
+        'proof',
+        'payment',
+        payment.proof,
+      );
+
+      await fs.unlink(filePath);
+
+      await this.paymentRepository.update(payment.id, {
+        proof: null,
+      });
+
+      return {
+        data: payment,
+        statusCode: HttpStatus.OK,
+        message: 'Success delete proof',
+      };
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('Booking not found');
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  async completeTranslatorPayment(id: string, translatorId: string) {
+    try {
+      const payment = await this.findById(id);
+
+      if (payment.translator.id !== translatorId) {
+        throw new ForbiddenException(
+          'You are not allowed to complete this payment',
+        );
+      }
+
+      if (payment.status !== PaymentStatus.PENDING) {
+        throw new BadRequestException('Only pending payment can be completed');
+      }
+
+      await this.paymentRepository.update(id, {
+        status: PaymentStatus.PAID,
+      });
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Success complete payment',
+      };
+    } catch (error) {
+      throw error;
     }
   }
 }
