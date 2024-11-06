@@ -88,11 +88,11 @@ export class ServiceService {
       const [data, total] = await this.serviceRepository.findAndCount({
         skip: (page - 1) * limit,
         take: limit,
-        relations: {
-          sourceLanguage: true,
-          targetLanguage: true,
-          translator: true,
-        },
+        relations: [
+          'sourceLanguage',
+          'targetLanguage',
+          'translator.user.userDetail',
+        ],
         order: {
           pricePerHour: price as 'ASC' | 'DESC',
         },

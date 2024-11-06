@@ -19,7 +19,8 @@ import * as handlebars from 'handlebars';
 import * as path from 'path';
 import puppeteer from 'puppeteer';
 import { lastValueFrom } from 'rxjs';
-import { EntityNotFoundError, In, Repository } from 'typeorm';
+import { Between, EntityNotFoundError, In, Repository } from 'typeorm';
+import { PaymentExportDto } from './dto/export.dto';
 import { PaymentQueryDto, PaymentSortBy } from './dto/query.dto';
 import { Payment, PaymentStatus, PaymentType } from './entities/payment.entity';
 
@@ -374,14 +375,16 @@ export class PaymentService {
 
       const data = {
         paymentId: payment.id,
-        paymentDate: payment.createdAt.toLocaleDateString('en-UK', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: 'numeric',
-        }),
+        paymentDate: payment.createdAt
+          .toLocaleDateString('en-UK', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+          })
+          .replace('at ', ', '),
         clientName: payment.user.userDetail.fullName,
         clientEmail: payment.user.email,
         clientAddress: `${payment.user.userDetail.street}, ${payment.user.userDetail.city}, ${payment.user.userDetail.province}`,
@@ -578,6 +581,139 @@ export class PaymentService {
       };
     } catch (error) {
       throw error;
+    }
+  }
+
+  async export(dto: PaymentExportDto, res: Response, user: any) {
+    try {
+      const { startDate, endDate, paymentType, status } = dto;
+
+      const whereClause = {
+        createdAt: Between(new Date(startDate), new Date(endDate)),
+        status: In(status),
+      };
+
+      if (user.role === 'translator') {
+        whereClause['translator'] = {
+          id: user.translatorId,
+        };
+      }
+
+      if (paymentType) {
+        whereClause['paymentType'] = In(paymentType);
+      }
+
+      const [payments, total] = await this.paymentRepository.findAndCount({
+        where: whereClause,
+        relations: [
+          'booking.user.userDetail',
+          'booking.translator.user.userDetail',
+        ],
+      });
+
+      const data = {
+        generatedAt: new Date()
+          .toLocaleDateString('en-GB', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+          })
+          .replace(' at ', ', '),
+        startDate: new Date(startDate).toLocaleDateString('en-UK', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        endDate: new Date(endDate).toLocaleDateString('en-UK', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        isAdmin: user.role === 'admin',
+        totalData: total,
+        payments,
+      };
+
+      handlebars.registerHelper('formatDate', function (date) {
+        return new Date(date)
+          .toLocaleString('en-GB', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+          })
+          .replace('at ', ', ');
+      });
+
+      handlebars.registerHelper('formatCurrency', function (amount) {
+        return `Rp${amount.toLocaleString('id-ID')}`;
+      });
+
+      handlebars.registerHelper('eq', function (a, b) {
+        return a === b;
+      });
+
+      const templatePath = path.join(__dirname, 'templates', 'report.hbs');
+      const templateContent = await fs.readFile(templatePath, 'utf-8');
+
+      const compiledTemplate = handlebars.compile(templateContent);
+      const html = compiledTemplate(data);
+
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+          '--allow-file-access-from-files',
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+        ],
+        timeout: 120000,
+      });
+
+      const page = await browser.newPage();
+
+      await page.setContent(html, {
+        waitUntil: 'networkidle0',
+        timeout: 120000,
+      });
+
+      const pdf = await page.pdf({
+        format: 'A4',
+        margin: {
+          top: '10mm',
+          right: '10mm',
+          bottom: '10mm',
+          left: '10mm',
+        },
+        printBackground: true,
+        displayHeaderFooter: true,
+        headerTemplate: '<p></p>',
+        footerTemplate: `
+          <div style="font-size: 10px; text-align: right; width: 100%; padding: 0 20px;">
+            <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
+          </div>
+        `,
+      });
+
+      await browser.close();
+
+      const fileName = `payment-report-${new Date()
+        .toISOString()
+        .slice(0, 10)}.pdf`;
+
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename=${fileName}`,
+      });
+
+      res.end(pdf);
+    } catch (error) {
+      res.status(500).send({
+        message: 'Error generating payment report',
+        error: error.message,
+      });
     }
   }
 }

@@ -5,6 +5,7 @@ import { PaginationDto } from '#/utils/pagination.dto';
 import { uploadImage } from '#/utils/upload-image';
 import {
   BadRequestException,
+  Body,
   Controller,
   Delete,
   Get,
@@ -21,6 +22,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
+import { PaymentExportDto } from './dto/export.dto';
 import { PaymentQueryDto } from './dto/query.dto';
 import { PaymentService } from './payment.service';
 
@@ -32,6 +34,17 @@ export class PaymentController {
   @Post('/notification-handler')
   async midtransNotification(@Request() req) {
     return await this.paymentService.updatePaymentStatus(req.body);
+  }
+
+  @Post('/export')
+  async export(
+    @Body() dto: PaymentExportDto,
+    @Res() res: Response,
+    @Request() req,
+  ) {
+    const pdf = await this.paymentService.export(dto, res, req.user);
+
+    return pdf;
   }
 
   // @Roles(Role.CLIENT)

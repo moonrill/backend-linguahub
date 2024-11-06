@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>LinguaHub Payment Report</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Inter', Arial, sans-serif;
+    }
+
+    body {
+        font-size: 12px;
+        background-color: white;
+        color: #333;
+        line-height: 1.5;
+    }
+
+    .title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    img { 
+        width: 150px; height: 40px; margin-right: 10px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        background-color: white;
+        border: 1px solid #dee2e6;
+    }
+
+    th, td {
+        border: 1px solid #dee2e6;
+        text-align: left;
+        padding: 10px;
+    }
+
+    th {
+        background-color: #F4F7F9;
+        font-weight: 600;
+        text-align: left;
+        padding: 12px;
+    }
+
+    td {
+        padding: 12px;
+        color: #444;
+    }
+
+    tfoot {
+        background-color: #F4F7F9;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .status-success {
+        background-color: #dcfce7;
+        color: #16a34a;
+    }
+
+    .status-pending {
+        background-color: #fef3c7;
+        color: #d97706;
+    }
+
+    .status-failed {
+        background-color: #ffe4e6;
+        color: #e11d48;
+    }
+
+    .status-refunded {
+      background-color: #f3e8ff;
+      color: #9333ea;
+    }
+
+    .amount {
+      font-weight: 600;
+    }
+    </style>
+</head>
+<body>
+    <div>
+      <div style="display: flex; justify-content: space-between">
+        <h2 class="title">Payment Report</h2>
+        <img src='https://i.imgur.com/SuhBLRR.png' alt='LinguaHub Logo' />
+      </div>
+        <div class="header-info">
+            <p>Generated: {{generatedAt}}</p>
+            <p>Period: {{startDate}} - {{endDate}}</p>
+        </div>
+    </div>
+
+    {{#if isAdmin}}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Name</th>
+                    <th>Payment Type</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Payment Method</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each payments}}
+                    <tr>
+                        <td>{{formatDate this.createdAt}}</td>
+                        <td>
+                            {{#if (eq this.paymentType 'client')}}
+                                {{this.booking.user.userDetail.fullName}}
+                            {{else}}
+                                {{this.booking.translator.user.userDetail.fullName}}
+                            {{/if}}
+                        </td>
+                        <td style="text-transform: capitalize;">{{this.paymentType}}</td>
+                        <td>
+                            <span class="status-badge {{#if (eq this.status 'paid')}}status-success{{/if}} {{#if (eq this.status 'pending')}}status-pending{{/if}}  {{#if (eq this.status 'refund')}}status-refunded{{/if}}">
+                                {{this.status}}
+                            </span>
+                        </td>
+                        <td class="amount">{{formatCurrency this.amount}}</td>
+                        <td>{{this.paymentMethod}}</td>
+                    </tr>
+                {{/each}}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan='7'>
+                        <strong>Total Records: {{totalData}}</strong>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    {{else}}
+        <table>
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each payments}}
+                    <tr>
+                        <td>{{formatDate this.createdAt}}</td>
+                        <td>{{this.booking.user.userDetail.fullName}}</td>
+                        <td>
+                            <span class="status-badge {{#if (eq this.status 'paid')}}status-success{{/if}} {{#if (eq this.status 'pending')}}status-pending{{/if}} {{#if (eq this.status 'failed')}}status-failed{{/if}}">
+                                {{this.status}}
+                            </span>
+                        </td>
+                        <td class="amount">{{formatCurrency this.amount}}</td>
+                    </tr>
+                {{/each}}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan='5'>
+                        <strong>Total Records: {{totalData}}</strong>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    {{/if}}
+</body>
+</html>
