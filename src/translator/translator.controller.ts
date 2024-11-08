@@ -4,7 +4,7 @@ import { Public } from '#/auth/strategies/public.strategy';
 import { BookingQueryDto } from '#/booking/dto/query.dto';
 import { PaymentQueryDto } from '#/payment/dto/query.dto';
 import { ReviewQueryDto } from '#/review/dto/query.dto';
-import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
+import { ServiceRequestQueryDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { translatorDocumentStorage } from '#/utils/upload-documents';
 import {
@@ -107,7 +107,7 @@ export class TranslatorController {
   async getServiceRequests(
     @Request() req,
     @Query() paginationDto: PaginationDto,
-    @Query() queryDto: QueryServiceRequestDto,
+    @Query() queryDto: ServiceRequestQueryDto,
   ) {
     const result = await this.translatorService.getTranslatorServiceRequests(
       req.user.id,

@@ -589,7 +589,10 @@ export class PaymentService {
       const { startDate, endDate, paymentType, status } = dto;
 
       const whereClause = {
-        createdAt: Between(new Date(startDate), new Date(endDate)),
+        createdAt: Between(
+          new Date(startDate),
+          new Date(new Date(endDate).setDate(new Date(endDate).getDate() + 1)),
+        ),
         status: In(status),
       };
 
@@ -609,6 +612,9 @@ export class PaymentService {
           'booking.user.userDetail',
           'booking.translator.user.userDetail',
         ],
+        order: {
+          createdAt: 'DESC',
+        },
       });
 
       const data = {

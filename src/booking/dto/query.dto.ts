@@ -2,7 +2,8 @@ import { IsEnum, IsOptional } from 'class-validator';
 import { BookingStatus } from '../entities/booking.entity';
 
 export enum BookingSortBy {
-  DATE = 'date',
+  NEWEST = 'newest',
+  BOOKING_DATE = 'bookingDate',
   PRICE = 'price',
 }
 
@@ -13,8 +14,5 @@ export class BookingQueryDto {
 
   @IsOptional()
   @IsEnum(BookingSortBy)
-  sortBy: BookingSortBy = BookingSortBy.DATE;
-
-  @IsOptional()
-  order: 'ASC' | 'DESC' = 'DESC';
+  sortBy: BookingSortBy = BookingSortBy.NEWEST;
 }

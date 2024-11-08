@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
-import { QueryServiceRequestDto } from './dto/query.dto';
+import { ServiceRequestQueryDto } from './dto/query.dto';
 import { RejectServiceRequestDto } from './dto/reject.dto';
 import { UpdateServiceRequestDto } from './dto/update-service-request.dto';
 import { ServiceRequestService } from './service-request.service';
@@ -44,7 +44,7 @@ export class ServiceRequestController {
   @Get()
   async findAll(
     @Query() paginationDto: PaginationDto,
-    @Query() queryDto: QueryServiceRequestDto,
+    @Query() queryDto: ServiceRequestQueryDto,
   ) {
     const result = await this.serviceRequestService.findAll(
       paginationDto,

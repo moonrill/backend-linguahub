@@ -2,7 +2,7 @@ import { Role } from '#/auth/role.enum';
 import { Roles } from '#/auth/roles.decorator';
 import { BookingQueryDto } from '#/booking/dto/query.dto';
 import { PaymentQueryDto } from '#/payment/dto/query.dto';
-import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
+import { ServiceRequestQueryDto } from '#/service-request/dto/query.dto';
 import { PaginationDto } from '#/utils/pagination.dto';
 import { uploadImage } from '#/utils/upload-image';
 import {
@@ -68,7 +68,7 @@ export class UsersController {
   @Get('service-requests')
   async getServiceRequests(
     @Query() paginationDto: PaginationDto,
-    @Query() queryDto: QueryServiceRequestDto,
+    @Query() queryDto: ServiceRequestQueryDto,
     @Request() req,
   ) {
     const result = await this.usersService.getUserServiceRequests(

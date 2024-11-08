@@ -23,7 +23,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, In, Repository } from 'typeorm';
 import { CreateServiceRequestDto } from './dto/create-service-request.dto';
-import { QueryServiceRequestDto } from './dto/query.dto';
+import { ServiceRequestQueryDto } from './dto/query.dto';
 import { UpdateServiceRequestDto } from './dto/update-service-request.dto';
 
 @Injectable()
@@ -45,13 +45,13 @@ export class ServiceRequestService {
 
   async findAll(
     paginationDto: PaginationDto,
-    queryDto: QueryServiceRequestDto,
+    queryDto: ServiceRequestQueryDto,
     type?: 'user' | 'translator',
     id?: string,
   ) {
     try {
       const { page, limit } = paginationDto;
-      const { status, sortBy, order } = queryDto;
+      const { status, sortBy } = queryDto;
 
       const whereClause = {};
       const relations = [
@@ -84,11 +84,14 @@ export class ServiceRequestService {
       const orderBy = {};
 
       switch (sortBy) {
-        case BookingSortBy.DATE:
-          orderBy['createdAt'] = order;
+        case BookingSortBy.NEWEST:
+          orderBy['createdAt'] = 'desc';
+          break;
+        case BookingSortBy.BOOKING_DATE:
+          orderBy['bookingDate'] = 'desc';
           break;
         case BookingSortBy.PRICE:
-          orderBy['totalPrice'] = order;
+          orderBy['totalPrice'] = 'desc';
           break;
       }
 

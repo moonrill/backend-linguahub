@@ -5,7 +5,7 @@ import { PaymentQueryDto } from '#/payment/dto/query.dto';
 import { PaymentService } from '#/payment/payment.service';
 import { Role } from '#/role/entities/role.entity';
 import { RoleService } from '#/role/role.service';
-import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
+import { ServiceRequestQueryDto } from '#/service-request/dto/query.dto';
 import { ServiceRequestService } from '#/service-request/service-request.service';
 import { TranslatorService } from '#/translator/translator.service';
 import { PaginationDto } from '#/utils/pagination.dto';
@@ -266,6 +266,10 @@ export class UsersService {
       newUserDetail.subDistrict = updateUserDto.subDistrict;
       newUserDetail.street = updateUserDto.street;
 
+      if (updateUserDto.profilePicture) {
+        newUserDetail.profilePicture = updateUserDto.profilePicture;
+      }
+
       await this.userDetailRepository.update(user.userDetail.id, newUserDetail);
 
       return await this.findById(id);
@@ -371,7 +375,7 @@ export class UsersService {
   async getUserServiceRequests(
     userId: string,
     paginationDto: PaginationDto,
-    queryDto: QueryServiceRequestDto,
+    queryDto: ServiceRequestQueryDto,
   ) {
     try {
       const user = await this.findById(userId);

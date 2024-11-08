@@ -39,7 +39,7 @@ export class BookingService {
   ) {
     try {
       const { page, limit } = paginationDto;
-      const { status, sortBy, order } = queryDto;
+      const { status, sortBy } = queryDto;
 
       const whereClause = {
         requestStatus: BookingRequestStatus.APPROVED,
@@ -74,11 +74,14 @@ export class BookingService {
       const orderBy = {};
 
       switch (sortBy) {
-        case BookingSortBy.DATE:
-          orderBy['bookingDate'] = order;
+        case BookingSortBy.NEWEST:
+          orderBy['createdAt'] = 'desc';
+          break;
+        case BookingSortBy.BOOKING_DATE:
+          orderBy['bookingDate'] = 'desc';
           break;
         case BookingSortBy.PRICE:
-          orderBy['totalPrice'] = order;
+          orderBy['totalPrice'] = 'desc';
           break;
       }
 

@@ -7,7 +7,7 @@ import { PaymentQueryDto } from '#/payment/dto/query.dto';
 import { PaymentService } from '#/payment/payment.service';
 import { ReviewQueryDto } from '#/review/dto/query.dto';
 import { ReviewService } from '#/review/review.service';
-import { QueryServiceRequestDto } from '#/service-request/dto/query.dto';
+import { ServiceRequestQueryDto } from '#/service-request/dto/query.dto';
 import { ServiceRequestService } from '#/service-request/service-request.service';
 import { Service, ServiceStatus } from '#/service/entities/service.entity';
 import { SpecializationService } from '#/specialization/specialization.service';
@@ -527,7 +527,7 @@ export class TranslatorService {
   async getTranslatorServiceRequests(
     userId: string,
     paginationDto: PaginationDto,
-    queryDto: QueryServiceRequestDto,
+    queryDto: ServiceRequestQueryDto,
   ) {
     try {
       const translator = await this.findByUserId(userId);

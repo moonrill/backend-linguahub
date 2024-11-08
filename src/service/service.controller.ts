@@ -37,8 +37,13 @@ export class ServiceController {
   async findAll(
     @Query() paginationDto: PaginationDto,
     @Query('price') price: string,
+    @Query('status') status: string,
   ) {
-    const result = await this.serviceService.findAll(paginationDto, price);
+    const result = await this.serviceService.findAll(
+      paginationDto,
+      price,
+      status,
+    );
 
     return {
       ...result,

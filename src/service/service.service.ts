@@ -82,12 +82,19 @@ export class ServiceService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto, price: string) {
+  async findAll(paginationDto: PaginationDto, price: string, status: string) {
     try {
       const { page, limit } = paginationDto;
+      const whereClause = {};
+
+      if (status) {
+        whereClause['status'] = status;
+      }
+
       const [data, total] = await this.serviceRepository.findAndCount({
         skip: (page - 1) * limit,
         take: limit,
+        where: whereClause,
         relations: [
           'sourceLanguage',
           'targetLanguage',

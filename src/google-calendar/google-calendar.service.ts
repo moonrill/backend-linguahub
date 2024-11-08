@@ -25,7 +25,7 @@ export class GoogleCalendarService {
   async getAuthUrl(email: string): Promise<string> {
     const url = this.oauth2Client.generateAuthUrl({
       access_type: 'offline',
-      prompt: 'select_account',
+      prompt: 'consent',
       scope: [
         'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/userinfo.email',
@@ -38,41 +38,45 @@ export class GoogleCalendarService {
   }
 
   async saveUserToken(code: string, loggedInEmail: string) {
-    const { tokens } = await this.oauth2Client.getToken(code);
+    try {
+      const { tokens } = await this.oauth2Client.getToken(code);
 
-    this.oauth2Client.setCredentials(tokens);
+      this.oauth2Client.setCredentials(tokens);
 
-    // Get User Info
-    const peopleService = google.people({
-      version: 'v1',
-      auth: this.oauth2Client,
-    });
+      // Get User Info
+      const peopleService = google.people({
+        version: 'v1',
+        auth: this.oauth2Client,
+      });
 
-    const response = await peopleService.people.get({
-      resourceName: 'people/me',
-      personFields: 'names,emailAddresses',
-    });
+      const response = await peopleService.people.get({
+        resourceName: 'people/me',
+        personFields: 'names,emailAddresses',
+      });
 
-    const googleEmail = response.data.emailAddresses[0].value;
+      const googleEmail = response.data.emailAddresses[0].value;
 
-    // Validasi email
-    if (googleEmail !== loggedInEmail) {
-      throw new Error(
-        'Google email does not match the account that is currently logged in',
-      );
+      // Validasi email
+      if (googleEmail !== loggedInEmail) {
+        throw new Error(
+          'Google email does not match the account that is currently logged in',
+        );
+      }
+
+      const user = await this.userRepository.findOne({
+        where: { email: googleEmail },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      await this.userRepository.update(user.id, {
+        googleCalendarToken: tokens.refresh_token,
+      });
+    } catch (error) {
+      throw error;
     }
-
-    const user = await this.userRepository.findOne({
-      where: { email: googleEmail },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    await this.userRepository.update(user.id, {
-      googleCalendarToken: tokens.refresh_token,
-    });
   }
 
   async addBookingToCalendar(
@@ -106,7 +110,6 @@ export class GoogleCalendarService {
         break;
 
       case 'translator':
-        attendees = [{ email: booking.user.email }];
         description = `
       You have a scheduled translation service booking. 
       Details are as follows:

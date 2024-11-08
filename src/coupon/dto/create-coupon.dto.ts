@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsUUID,
   Max,
 } from 'class-validator';
@@ -17,7 +18,7 @@ export class CreateCouponDto {
   @IsNotEmpty()
   description: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(CouponStatus)
   status: CouponStatus = CouponStatus.ACTIVE;
 

@@ -30,4 +30,7 @@ export class UpdateUserDto {
 
   @IsOptional()
   street: string;
+
+  @IsOptional()
+  profilePicture: string;
 }
