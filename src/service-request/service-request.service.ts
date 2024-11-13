@@ -147,19 +147,13 @@ export class ServiceRequestService {
       newServiceRequest.endAt = createServiceRequestDto.endAt;
       newServiceRequest.location = createServiceRequestDto.location;
       newServiceRequest.notes = createServiceRequestDto.notes;
-      newServiceRequest.duration = this.calculateDuration(
-        createServiceRequestDto.startAt,
-        createServiceRequestDto.endAt,
-      );
+      newServiceRequest.duration = createServiceRequestDto.duration;
       newServiceRequest.requestStatus = BookingRequestStatus.PENDING;
 
       // Price
-      newServiceRequest.serviceFee = Math.round(
-        service.pricePerHour * newServiceRequest.duration,
-      );
-      newServiceRequest.systemFee = Math.round(
-        0.1 * newServiceRequest.serviceFee,
-      );
+      newServiceRequest.serviceFee =
+        service.pricePerHour * newServiceRequest.duration;
+      newServiceRequest.systemFee = newServiceRequest.serviceFee * 0.1;
 
       // Total
       let totalPrice =
@@ -312,10 +306,7 @@ export class ServiceRequestService {
       newServiceRequest.endAt = updateServiceRequestDto.endAt;
       newServiceRequest.location = updateServiceRequestDto.location;
       newServiceRequest.notes = updateServiceRequestDto.notes;
-      newServiceRequest.duration = this.calculateDuration(
-        updateServiceRequestDto.startAt,
-        updateServiceRequestDto.endAt,
-      );
+      newServiceRequest.duration = updateServiceRequestDto.duration;
 
       newServiceRequest.serviceFee = Math.round(
         serviceRequest.service.pricePerHour * newServiceRequest.duration,
@@ -324,9 +315,32 @@ export class ServiceRequestService {
         0.1 * newServiceRequest.serviceFee,
       );
 
-      newServiceRequest.totalPrice = Math.round(
-        newServiceRequest.serviceFee + newServiceRequest.systemFee,
-      );
+      let totalPrice =
+        newServiceRequest.serviceFee + newServiceRequest.systemFee;
+
+      if (serviceRequest.coupon) {
+        const userCoupon = await this.userCouponsRepository.findOne({
+          where: {
+            user: { id: userId },
+            coupon: { id: serviceRequest.coupon.id },
+          },
+        });
+
+        if (!userCoupon) {
+          throw new BadRequestException('User has not this coupon');
+        }
+
+        const discountAmount = Math.round(
+          (serviceRequest.coupon.discountPercentage * totalPrice) / 100,
+        );
+
+        newServiceRequest.coupon = serviceRequest.coupon;
+        newServiceRequest.discountAmount = discountAmount;
+
+        totalPrice -= discountAmount;
+      }
+
+      newServiceRequest.totalPrice = totalPrice;
 
       await this.bookingRepository.update(id, newServiceRequest);
 

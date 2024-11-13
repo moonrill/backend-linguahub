@@ -68,7 +68,10 @@ export class Coupon {
   })
   deletedAt: Date;
 
-  @ManyToOne(() => Event, (event) => event.coupons, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Event, (event) => event.coupons, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
   event: Event;
 
   @OneToMany(() => UserCoupons, (userCoupon) => userCoupon.coupon)

@@ -42,6 +42,10 @@ export class CreateServiceRequestDto {
   endAt: string;
 
   @IsNotEmpty()
+  @Type(() => Number)
+  duration: number;
+
+  @IsNotEmpty()
   location: string;
 
   @IsOptional()

@@ -67,12 +67,19 @@ export class CouponService {
           break;
       }
 
-      const [data, total] = await this.couponRepository.findAndCount({
+      const [coupons, total] = await this.couponRepository.findAndCount({
         where: whereClause,
         skip: (page - 1) * limit,
         take: limit,
-        relations: ['event'],
+        relations: ['event', 'userCoupons'],
+        order: { createdAt: 'DESC' },
       });
+
+      const data = coupons.map((coupon) => ({
+        ...coupon,
+        totalClaimed: coupon.userCoupons?.length || 0,
+        userCoupons: undefined,
+      }));
 
       const totalPages = Math.ceil(total / limit);
 
@@ -190,6 +197,23 @@ export class CouponService {
       (type === 'claim' ? coupon.event.endDate : coupon.expiredAt) < new Date()
     ) {
       throw new GoneException('Coupon is no longer available.');
+    }
+  }
+
+  async toggleStatus(id: string) {
+    try {
+      const coupon = await this.findById(id);
+
+      coupon.status =
+        coupon.status === CouponStatus.ACTIVE
+          ? CouponStatus.INACTIVE
+          : CouponStatus.ACTIVE;
+
+      await this.couponRepository.update(id, coupon);
+
+      return await this.findById(id);
+    } catch (error) {
+      throw error;
     }
   }
 }

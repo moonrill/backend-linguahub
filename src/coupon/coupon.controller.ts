@@ -73,6 +73,7 @@ export class CouponController {
     };
   }
 
+  @Roles(Role.ADMIN)
   @Put(':id')
   async update(
     @Param('id') id: string,
@@ -82,6 +83,16 @@ export class CouponController {
       data: await this.couponService.update(id, updateCouponDto),
       statusCode: HttpStatus.OK,
       message: 'Success update coupon',
+    };
+  }
+
+  @Roles(Role.ADMIN)
+  @Put(':id/status')
+  async toggleStatus(@Param('id', new ParseUUIDPipe()) id: string) {
+    return {
+      data: await this.couponService.toggleStatus(id),
+      statusCode: HttpStatus.OK,
+      message: 'Success update coupon status',
     };
   }
 

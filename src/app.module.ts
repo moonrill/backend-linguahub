@@ -25,6 +25,7 @@ import { ServiceRequestModule } from './service-request/service-request.module';
 import { MailModule } from './mail/mail.module';
 import { PaymentModule } from './payment/payment.module';
 import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -131,6 +132,7 @@ import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
     MailModule,
     PaymentModule,
     GoogleCalendarModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

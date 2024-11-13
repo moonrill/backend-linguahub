@@ -217,7 +217,7 @@ export class PaymentService {
         transactionStatus === 'expire'
       ) {
         paymentStatus = PaymentStatus.FAILED;
-        bookingStatus = BookingStatus.UNPAID;
+        bookingStatus = BookingStatus.CANCELLED;
       } else if (transactionStatus === 'pending') {
         paymentStatus = PaymentStatus.PENDING;
         bookingStatus = BookingStatus.UNPAID;
@@ -474,12 +474,13 @@ export class PaymentService {
         reason: 'Cancellation from client',
       };
 
-      lastValueFrom(
-        this.httpService.post(
-          `https://api.sandbox.midtrans.com/v2/${payment.id}/refund`,
-          payload,
-        ),
-      );
+      // FIXME: Refund payment (Later)
+      // lastValueFrom(
+      //   this.httpService.post(
+      //     `https://api.sandbox.midtrans.com/v2/${payment.id}/refund`,
+      //     payload,
+      //   ),
+      // );
 
       await this.paymentRepository.update(payment.id, {
         status: PaymentStatus.REFUND,

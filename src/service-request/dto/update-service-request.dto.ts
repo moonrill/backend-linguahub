@@ -28,4 +28,8 @@ export class UpdateServiceRequestDto {
 
   @IsOptional()
   notes: string;
+
+  @IsNotEmpty()
+  @Type(() => Number)
+  duration: number;
 }
