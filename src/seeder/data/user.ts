@@ -3,8 +3,8 @@ const defaultPassword = '123';
 export const userMasterData = [
   {
     id: '804d231f-e521-4a6b-a399-a45a23d30c4c',
-    email: 'atmin@gmail.com',
-    password: 'atmin#123',
+    email: 'linguahub.admin@gmail.com',
+    password: 'linguahub',
     role: 'admin',
   },
   {
