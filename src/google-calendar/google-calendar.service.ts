@@ -1,11 +1,15 @@
 import { Booking } from '#/booking/entities/booking.entity';
 import { User } from '#/users/entities/user.entity';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OAuth2Client } from 'google-auth-library';
 import { google } from 'googleapis';
-import { Repository } from 'typeorm';
+import { EntityNotFoundError, Repository } from 'typeorm';
 
 @Injectable()
 export class GoogleCalendarService {
@@ -204,6 +208,48 @@ export class GoogleCalendarService {
         } catch (refreshError) {
           throw new Error('Failed to refresh token and insert calendar event');
         }
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  async getCalendarEvents(userId: string) {
+    try {
+      const user = await this.userRepository.findOneOrFail({
+        where: { id: userId },
+      });
+
+      if (!user.googleCalendarToken) {
+        throw new ForbiddenException('User not connected to Google Calendar');
+      }
+
+      this.oauth2Client.setCredentials({
+        refresh_token: user.googleCalendarToken,
+      });
+
+      const calendar = google.calendar({
+        version: 'v3',
+        auth: this.oauth2Client,
+      });
+
+      const response = await calendar.events.list({
+        calendarId: 'primary',
+        timeMin: new Date().toISOString(),
+        maxResults: 100,
+        singleEvents: true,
+        orderBy: 'startTime',
+        q: 'Booking for Translation Service:',
+      });
+
+      const translationEvents = response.data.items.filter((event) =>
+        event.summary?.startsWith('Booking for Translation Service:'),
+      );
+
+      return translationEvents;
+    } catch (error) {
+      if (error instanceof EntityNotFoundError) {
+        throw new NotFoundException('User not found');
       } else {
         throw error;
       }

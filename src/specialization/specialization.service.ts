@@ -17,6 +17,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, ILike, Repository } from 'typeorm';
 import { CreateSpecializationDto } from './dto/create-specialization.dto';
+import { SpecializationQueryDto } from './dto/query.dto';
 import { UpdateSpecializationDto } from './dto/update-specialization.dto';
 import { Specialization } from './entities/specialization.entity';
 
@@ -62,7 +63,10 @@ export class SpecializationService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  async findAll(
+    paginationDto: PaginationDto,
+    queryDto: SpecializationQueryDto,
+  ) {
     try {
       const { page, limit } = paginationDto;
 
@@ -84,7 +88,7 @@ export class SpecializationService {
           'translatorCount',
         )
         .groupBy('specialization.id')
-        .orderBy('specialization.name', 'ASC');
+        .orderBy(`specialization.${queryDto.orderBy}`, queryDto.direction);
 
       const offset = (page - 1) * limit;
 
@@ -232,7 +236,7 @@ export class SpecializationService {
 
       const isNameExist = await this.specializationRepository.findOne({
         where: {
-          name: ILike(`%${updateSpecializationDto.name}%`),
+          name: ILike(updateSpecializationDto.name),
         },
       });
 

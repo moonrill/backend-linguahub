@@ -47,14 +47,16 @@ export class SeederService implements OnApplicationBootstrap {
       });
 
       // Jika tidak ada entitas dengan ID tersebut, lakukan insert
-      if (!existingRecord) {
-        await this.dataSource
-          .createQueryBuilder()
-          .insert()
-          .into(entity)
-          .values(item)
-          .execute();
+      if (existingRecord) {
+        return;
       }
+
+      await this.dataSource
+        .createQueryBuilder()
+        .insert()
+        .into(entity)
+        .values(item)
+        .execute();
     }
   }
 

@@ -22,6 +22,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateSpecializationDto } from './dto/create-specialization.dto';
+import { SpecializationQueryDto } from './dto/query.dto';
 import { UpdateSpecializationDto } from './dto/update-specialization.dto';
 import { SpecializationService } from './specialization.service';
 
@@ -54,8 +55,14 @@ export class SpecializationController {
 
   @Public()
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
-    const result = await this.specializationService.findAll(paginationDto);
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+    @Query() queryDto: SpecializationQueryDto,
+  ) {
+    const result = await this.specializationService.findAll(
+      paginationDto,
+      queryDto,
+    );
 
     return {
       ...result,

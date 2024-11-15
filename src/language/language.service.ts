@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityNotFoundError, Repository } from 'typeorm';
 import { CreateLanguageDto } from './dto/create-language.dto';
+import { LanguageQueryDto } from './dto/query.dto';
 import { UpdateLanguageDto } from './dto/update-language.dto';
 import { Language } from './entities/language.entity';
 
@@ -44,7 +45,7 @@ export class LanguageService {
     });
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto, queryDto: LanguageQueryDto) {
     try {
       const { page, limit } = paginationDto;
 
@@ -65,7 +66,7 @@ export class LanguageService {
           'serviceCount',
         )
         .groupBy('language.id')
-        .orderBy('language.name', 'ASC');
+        .orderBy(`language.${queryDto.orderBy}`, queryDto.direction);
 
       const offset = (page - 1) * limit;
 

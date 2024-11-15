@@ -77,7 +77,7 @@ export class AuthController {
 
       await this.googleCalendarService.saveUserToken(code, loggedInUserEmail);
 
-      res.redirect(this.configService.get<string>('FRONTEND_URL'));
+      res.redirect(`${this.configService.get<string>('FRONTEND_URL')}/login`);
     } catch (error) {
       res.redirect(
         `${this.configService.get<string>(

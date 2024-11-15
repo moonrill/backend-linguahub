@@ -63,7 +63,7 @@ export class EventService {
         skip: (page - 1) * limit,
         take: limit,
         relations: ['coupons'],
-        order: { startDate: 'ASC' },
+        order: { createdAt: 'DESC' },
       });
 
       const totalPages = Math.ceil(total / limit);

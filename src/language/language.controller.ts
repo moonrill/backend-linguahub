@@ -21,6 +21,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateLanguageDto } from './dto/create-language.dto';
+import { LanguageQueryDto } from './dto/query.dto';
 import { UpdateLanguageDto } from './dto/update-language.dto';
 import { LanguageService } from './language.service';
 
@@ -53,8 +54,11 @@ export class LanguageController {
 
   @Public()
   @Get()
-  async findAll(@Query() paginationDto: PaginationDto) {
-    const result = await this.languageService.findAll(paginationDto);
+  async findAll(
+    @Query() paginationDto: PaginationDto,
+    @Query() queryDto: LanguageQueryDto,
+  ) {
+    const result = await this.languageService.findAll(paginationDto, queryDto);
 
     return {
       ...result,
