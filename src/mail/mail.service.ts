@@ -20,13 +20,12 @@ export class MailService {
 
       await this.mailService.sendMail({
         subject,
-        // TODO: Change this
         to: translator.user.email,
-        // to: 'arilramadani245@gmail.com',
         template: 'translator-register',
         context: {
           subject,
           translatorName: translator.user.userDetail.fullName,
+          translatorId: translator.id,
           isApproved: status === TranslatorStatus.APPROVED,
           reason,
           status: status.toLowerCase(),
@@ -51,9 +50,7 @@ export class MailService {
 
       await this.mailService.sendMail({
         subject,
-        // TODO: Change this
         to: serviceRequest.user.email,
-        // to: 'gandarafathurrhman@gmail.com',
         template: 'service-request',
         context: {
           subject,

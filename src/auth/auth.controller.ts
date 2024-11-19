@@ -15,6 +15,7 @@ import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { EditTranslatorDto } from './dto/edit-translator.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from './strategies/public.strategy';
 
@@ -100,6 +101,16 @@ export class AuthController {
       ),
       statusCode: HttpStatus.OK,
       message: 'Success change password',
+    };
+  }
+
+  @Public()
+  @Put('register/edit')
+  async editTranslatorRegister(@Body() editTranslatorDto: EditTranslatorDto) {
+    return {
+      data: await this.authService.editTranslatorRegister(editTranslatorDto),
+      statusCode: HttpStatus.OK,
+      message: 'Success edit translator',
     };
   }
 }

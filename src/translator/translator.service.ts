@@ -128,7 +128,7 @@ export class TranslatorService {
     return transactionalEntityManager.save(Translator, newTranslator);
   }
 
-  private async saveLanguages(
+  async saveLanguages(
     languageIds: string[],
     translator: Translator,
     transactionalEntityManager: EntityManager,
@@ -168,7 +168,7 @@ export class TranslatorService {
     );
   }
 
-  private async saveSpecializations(
+  async saveSpecializations(
     specializationIds: string[],
     translator: Translator,
     transactionalEntityManager: EntityManager,

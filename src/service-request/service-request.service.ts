@@ -255,17 +255,11 @@ export class ServiceRequestService {
 
       const { translator, ...restData } = data;
 
-      const {
-        services,
-        specializations,
-        languages,
-        reviews,
-        ...restTranslator
-      } = this.translatorService.destructTranslator(data.translator);
+      const { services, reviews, ...restTranslator } =
+        this.translatorService.destructTranslator(data.translator);
 
       const destructTranslator = {
         ...restTranslator,
-        languages: languages.splice(0, 3),
       };
 
       return {
