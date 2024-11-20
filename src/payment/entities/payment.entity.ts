@@ -89,6 +89,7 @@ export class Payment {
 
   @ManyToOne(() => Booking, (booking) => booking.payments, {
     onUpdate: 'CASCADE',
+    onDelete: 'CASCADE',
   })
   booking: Booking;
 }

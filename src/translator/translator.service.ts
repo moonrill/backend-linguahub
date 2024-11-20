@@ -459,6 +459,9 @@ export class TranslatorService {
           'translatorLanguages.language',
           'translatorSpecializations.specialization',
         ],
+        order: {
+          createdAt: 'DESC',
+        },
       });
 
       const totalPages = Math.ceil(total / limit);

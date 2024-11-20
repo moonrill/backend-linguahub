@@ -27,13 +27,11 @@ export class DashboardService {
         paymentType: PaymentType.CLIENT,
       });
 
-      const totalTranslatorPayments = await this.paymentRepository.sum(
-        'amount',
-        {
+      const totalTranslatorPayments =
+        (await this.paymentRepository.sum('amount', {
           status: PaymentStatus.PAID,
           paymentType: PaymentType.TRANSLATOR,
-        },
-      );
+        })) || 0;
 
       const { totalEarnings } = await this.bookingRepository
         .createQueryBuilder('booking')

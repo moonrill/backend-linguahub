@@ -137,7 +137,9 @@ export class Translator {
   })
   services: Service[];
 
-  @OneToMany(() => Review, (review) => review.translator)
+  @OneToMany(() => Review, (review) => review.translator, {
+    onDelete: 'CASCADE',
+  })
   reviews: Review[];
 
   @OneToMany(() => Booking, (booking) => booking.translator)

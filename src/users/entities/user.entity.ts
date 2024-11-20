@@ -71,7 +71,7 @@ export class User {
   @JoinColumn({ name: 'translator_id' })
   translator: Translator;
 
-  @OneToMany(() => Review, (review) => review.user)
+  @OneToMany(() => Review, (review) => review.user, { onDelete: 'CASCADE' })
   reviews: Review[];
 
   @OneToMany(() => Booking, (booking) => booking.user)
