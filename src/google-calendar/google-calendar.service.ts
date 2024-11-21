@@ -26,7 +26,7 @@ export class GoogleCalendarService {
     );
   }
 
-  async getAuthUrl(email: string): Promise<string> {
+  async getAuthUrl(email: string, redirectUrl: string): Promise<string> {
     const url = this.oauth2Client.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
@@ -35,7 +35,7 @@ export class GoogleCalendarService {
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile',
       ],
-      state: encodeURIComponent(JSON.stringify({ email })),
+      state: encodeURIComponent(JSON.stringify({ email, redirectUrl })),
     });
 
     return url;

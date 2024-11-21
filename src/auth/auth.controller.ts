@@ -59,9 +59,17 @@ export class AuthController {
 
   @Public()
   @Get('google')
-  async google(@Query('email') email: string, @Res() res) {
-    const decoded = decodeURIComponent(email);
-    const url = await this.googleCalendarService.getAuthUrl(decoded);
+  async google(
+    @Query('email') email: string,
+    @Query('redirectUrl') redirectUrl: string,
+    @Res() res,
+  ) {
+    const decodedEmail = decodeURIComponent(email);
+    const decodedUrl = decodeURIComponent(redirectUrl);
+    const url = await this.googleCalendarService.getAuthUrl(
+      decodedEmail,
+      decodedUrl,
+    );
 
     res.redirect(url);
   }
@@ -74,11 +82,14 @@ export class AuthController {
     @Res() res,
   ) {
     try {
-      const loggedInUserEmail = JSON.parse(decodeURIComponent(state)).email;
+      const { email, redirectUrl } = JSON.parse(decodeURIComponent(state));
 
-      await this.googleCalendarService.saveUserToken(code, loggedInUserEmail);
+      await this.googleCalendarService.saveUserToken(code, email);
 
-      res.redirect(`${this.configService.get<string>('FRONTEND_URL')}/login`);
+      res.redirect(
+        redirectUrl ||
+          `${this.configService.get<string>('FRONTEND_URL')}/login`,
+      );
     } catch (error) {
       res.redirect(
         `${this.configService.get<string>(
