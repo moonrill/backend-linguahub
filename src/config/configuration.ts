@@ -10,5 +10,8 @@ export default () => {
       password: process.env.DATABASE_PASSWORD || '',
       name: process.env.DATABASE_NAME,
     },
+    midtrans: {
+      serverKey: process.env.MIDTRANS_SERVER_KEY,
+    },
   };
 };

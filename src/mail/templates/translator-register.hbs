@@ -1,0 +1,159 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{subject}}</title>
+    <style>
+      @import
+      url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+      * { font-family: 'Inter', sans-serif; }
+    </style>
+  </head>
+  <body
+    style='margin:0;padding:0;background-color:#f6f6f6;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:#333333;'
+  >
+    <table
+      role='presentation'
+      cellpadding='0'
+      cellspacing='0'
+      width='100%'
+      style='border-collapse:collapse;'
+    >
+      <tr>
+        <td align='center' style='padding:40px 0;'>
+          <table
+            role='presentation'
+            cellpadding='0'
+            cellspacing='0'
+            width='600'
+            style='border-collapse:collapse;max-width:600px;background-color:#ffffff;box-shadow:0 0 10px rgba(0,0,0,0.1);'
+          >
+            <!-- Header -->
+            <tr>
+              <td align='left' style='padding:30px;'>
+                <img
+                  src='https://i.imgur.com/SuhBLRR.png'
+                  alt='LinguaHub Logo'
+                  width='150'
+                  style='display:block;max-width:200px;height:auto;'
+                />
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style='padding:0px 30px;'>
+
+                <p>Dear <strong>{{translatorName}}</strong>,</p>
+
+                <p>We hope this email finds you well. We have carefully reviewed
+                  your application to join our platform as a translator.</p>
+
+                <p>After thorough consideration, we are pleased to inform you
+                  that we have
+                  <span
+                    style='font-weight:bold;text-decoration: underline;'
+                  >{{status}}</span>
+                  your application.</p>
+
+                {{#if isApproved}}
+                  <p
+                    style='background-color:#e8f6fe;padding:15px;border-left:4px solid #2563eb;'
+                  ><strong>Congratulations on becoming a part of our esteemed
+                      translation team!</strong></p>
+                  <p>We are excited to welcome you aboard and look forward to a
+                    fruitful collaboration. To get started, please follow these
+                    steps:</p>
+                  <ol
+                    style='background-color:#f9f9f9;padding:20px 20px 20px 40px;border-radius:5px;'
+                  >
+                    <li><strong style='color:#2563eb;'>Access Your Dashboard:</strong>
+                      Log into your personalized translator dashboard to start
+                      receiving translation requests and manage your profile.</li>
+                    <li><strong style='color:#2563eb;'>Complete Your Profile:</strong>
+                      Ensure your profile is comprehensive, showcasing your
+                      expertise, portfolio, and service offerings.</li>
+                    <li><strong style='color:#2563eb;'>Set Your Services:</strong>
+                      Set your service with the language and price you prefer.</li>
+                    <li><strong style='color:#2563eb;'>Review Our Guidelines:</strong>
+                      Familiarize yourself with our translation standards and
+                      best practices.</li>
+                  </ol>
+                  <p>We are confident that your skills and expertise will be
+                    valuable assets to our platform and clients.</p>
+                  <p style='text-align:center;margin-top:30px;'>
+                    <a
+                      href='https://vjjvv56d-3000.asse.devtunnels.ms/dashboard'
+                      style='background-color:#2563eb;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:5px;font-weight:bold;'
+                    >Access Your Dashboard</a>
+                  </p>
+                {{else}}
+                  <p
+                    style='background-color:#fff1f2;padding:15px;border-left:4px solid #e11d48;'
+                  >We appreciate your interest in joining our platform. After
+                    careful consideration, we regret to inform you that we are
+                    unable to approve your application at this time.</p>
+                  {{#if reason}}
+                    <p><strong style='text-decoration:underline;'>Reason for
+                        Decision:</strong>
+                      {{reason}}</p>
+                  {{/if}}
+                  <p>You can resubmit your application to apply as a translator
+                    again. Before resubmitting, take a moment to carefully
+                    review your submitted details, ensuring all information is
+                    accurate and complete. Updating any missing or incorrect
+                    details can help strengthen your chances of success. Once
+                    you're confident with the information, you can proceed to
+                    resubmit your application.</p>
+                  <p style='text-align:center;margin-top:30px;'>
+                    <a
+                      href='https://vjjvv56d-3000.asse.devtunnels.ms/register/edit?id={{translatorId}}'
+                      style='background-color:#2563eb;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:5px;font-weight:bold;'
+                    >Update and Resubmit</a>
+                  </p>
+                {{/if}}
+
+                <p
+                  style='border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;padding:15px 0;margin-top:30px;'
+                >If you have any questions or need further clarification, please
+                  don't hesitate to reach out to our support team at
+                  <a
+                    href='mailto:support@linguahub.com'
+                    style='color:#2563eb;text-decoration:underline;'
+                  >support@linguahub.com</a>.</p>
+
+                <p>We appreciate your interest in LinguaHub and wish you success
+                  in your professional endeavors.</p>
+
+                <p>Best regards,<br /><strong style='color:#2c3e50;'>The
+                    LinguaHub Team</strong></p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                align='center'
+                bgcolor='#172554'
+                style='padding:20px;color:#f9fafb;font-size:14px;'
+              >
+                <p style='margin:0;'>&copy; 2024 LinguaHub. All rights reserved.</p>
+                <p style='margin:10px 0 0;'>
+                  <a
+                    href='#'
+                    style='color:#f9fafb;text-decoration:underline;'
+                  >Privacy Policy</a>
+                  |
+                  <a
+                    href='#'
+                    style='color:#f9fafb;text-decoration:underline;'
+                  >Terms of Service</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

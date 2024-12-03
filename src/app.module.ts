@@ -1,15 +1,31 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import * as Joi from 'joi';
-import { UsersModule } from './users/users.module';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import { LoggerModule } from 'nestjs-pino';
-import { HealthModule } from './health/health.module';
-import configuration from './config/configuration';
-import * as pino from 'pino';
 import { SeederModule } from '#/seeder/seeder.module';
-import { DepartmentsModule } from './departments/departments.module';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import * as Joi from 'joi';
+import { LoggerModule } from 'nestjs-pino';
+import { join } from 'path';
+import * as pino from 'pino';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { AuthModule } from './auth/auth.module';
+import configuration from './config/configuration';
+import { CouponModule } from './coupon/coupon.module';
+import { EventModule } from './event/event.module';
+import { HealthModule } from './health/health.module';
+import { LanguageModule } from './language/language.module';
+import { RoleModule } from './role/role.module';
+import { SpecializationModule } from './specialization/specialization.module';
+import { TranslatorModule } from './translator/translator.module';
+import { UsersModule } from './users/users.module';
+import { ServiceModule } from './service/service.module';
+import { ReviewModule } from './review/review.module';
+import { BookingModule } from './booking/booking.module';
+import { ServiceRequestModule } from './service-request/service-request.module';
+import { MailModule } from './mail/mail.module';
+import { PaymentModule } from './payment/payment.module';
+import { GoogleCalendarModule } from './google-calendar/google-calendar.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -94,10 +110,29 @@ import { DepartmentsModule } from './departments/departments.module';
       },
       inject: [ConfigService],
     }),
+    
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads/images'),
+      serveRoot: '/images',
+    }),
     SeederModule,
     UsersModule,
     HealthModule,
-    DepartmentsModule,
+    LanguageModule,
+    RoleModule,
+    TranslatorModule,
+    EventModule,
+    CouponModule,
+    SpecializationModule,
+    AuthModule,
+    ServiceModule,
+    ReviewModule,
+    BookingModule,
+    ServiceRequestModule,
+    MailModule,
+    PaymentModule,
+    GoogleCalendarModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

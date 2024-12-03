@@ -1,0 +1,157 @@
+<html lang='en'></html>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>{{subject}}</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+      * {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+  </head>
+  <body
+    style='margin:0;padding:0;background-color:#f6f6f6;font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:#333333;'
+  >
+    <table
+      role='presentation'
+      cellpadding='0'
+      cellspacing='0'
+      width='100%'
+      style='border-collapse:collapse;'
+    >
+      <tr>
+        <td align='center' style='padding:40px 0;'>
+          <table
+            role='presentation'
+            cellpadding='0'
+            cellspacing='0'
+            width='600'
+            style='border-collapse:collapse;max-width:600px;background-color:#ffffff;box-shadow:0 0 10px rgba(0,0,0,0.1);'
+          >
+            <!-- Header -->
+            <tr>
+              <td align='left' style='padding:30px;'>
+                <img
+                  src='https://i.imgur.com/SuhBLRR.png'
+                  alt='LinguaHub Logo'
+                  width='150'
+                  style='display:block;max-width:200px;height:auto;'
+                />
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style='padding:0px 30px;'>
+
+                <p>Dear <strong>{{userName}}</strong>,</p>
+
+                <p>We hope this email finds you well. We have carefully reviewed
+                  your service request for translation services.</p>
+
+                <p>After thorough consideration, we are pleased to inform you
+                  that we have
+                  <span
+                    style='font-weight:bold;text-decoration: underline;'
+                  >{{status}}</span>
+                  your service request.</p>
+
+                {{#if isApproved}}
+                  <p
+                    style='background-color:#e8f6fe;padding:15px;border-left:4px solid #2563eb;'
+                  ><strong>Your service request has been approved!</strong></p>
+                  <p>Here are the details of your approved booking:</p>
+                  <ul
+                    style='background-color:#f9f9f9;padding:20px 20px 20px 40px;border-radius:5px;'
+                  >
+                    <li><strong style='color:#2563eb;'>Translator:</strong> {{translatorName}}</li>
+                    <li><strong style='color:#2563eb;'>Service:</strong> {{serviceName}}</li>
+                    <li><strong style='color:#2563eb;'>Date:</strong> {{bookingDate}}</li>
+                    <li><strong style='color:#2563eb;'>Time:</strong> {{startAt}} - {{endAt}}</li>
+                    <li><strong style='color:#2563eb;'>Duration:</strong> {{duration}} hours</li>
+                    <li><strong style='color:#2563eb;'>Location:</strong> {{location}}</li>
+                  </ul>
+                  <p><strong>Pricing Details:</strong></p>
+                  <ul
+                    style='background-color:#f9f9f9;padding:20px 20px 20px 40px;border-radius:5px;'
+                  >
+                    <li>Service Fee: Rp{{serviceFee}}</li>
+                    <li>System Fee: Rp{{systemFee}}</li>
+                    {{#if discountAmount }}
+                    <li>Discount: Rp{{discountAmount}}</li>
+                    {{/if }}
+                    <li><strong>Total Price: Rp{{totalPrice}}</strong></li>
+                  </ul>
+                  <p>Please ensure that you make the payment for Rp{{totalPrice}} to confirm your booking. Once the payment is received, your status will be updated to "paid" and your session with the translator will be confirmed.</p>
+                  <p style='text-align:center;margin-top:30px;'>
+                    <a
+                      href='https://linguahub.com/payment'
+                      style='background-color:#2563eb;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:5px;font-weight:bold;'
+                    >Proceed to Payment</a>
+                  </p>
+                {{else}}
+                  <p
+                    style='background-color:#fff1f2;padding:15px;border-left:4px solid #e11d48;'
+                  >We regret to inform you that we are unable to approve your service request at this time.</p>
+                  {{#if rejectionReason}}
+                    <p><strong style='text-decoration:underline;'>Reason for
+                        Rejection:</strong>
+                      {{rejectionReason}}</p>
+                  {{/if}}
+                  <p>Here are the details of the rejected booking:</p>
+                  <ul
+                    style='background-color:#f9f9f9;padding:20px 20px 20px 40px;border-radius:5px;'
+                  >
+                    <li><strong style='color:#e11d48;'>Translator:</strong> {{translatorName}}</li>
+                    <li><strong style='color:#e11d48;'>Service:</strong> {{serviceName}}</li>
+                    <li><strong style='color:#e11d48;'>Date:</strong> {{bookingDate}}</li>
+                    <li><strong style='color:#e11d48;'>Time:</strong> {{startAt}} - {{endAt}}</li>
+                  </ul>
+                  <p>We encourage you to submit a new request with different parameters or contact our support team for assistance.</p>
+                {{/if}}
+
+                <p
+                  style='border-top:1px solid #e0e0e0;border-bottom:1px solid #e0e0e0;padding:15px 0;margin-top:30px;'
+                >If you have any questions or need further clarification, please
+                  don't hesitate to reach out to our support team at
+                  <a
+                    href='mailto:support@linguahub.com'
+                    style='color:#2563eb;text-decoration:underline;'
+                  >support@linguahub.com</a>.</p>
+
+                <p>Thank you for choosing LinguaHub for your translation needs.</p>
+
+                <p>Best regards,<br /><strong style='color:#2c3e50;'>The
+                    LinguaHub Team</strong></p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                align='center'
+                bgcolor='#172554'
+                style='padding:20px;color:#f9fafb;font-size:14px;'
+              >
+                <p style='margin:0;'>&copy; 2024 LinguaHub. All rights reserved.</p>
+                <p style='margin:10px 0 0;'>
+                  <a
+                    href='#'
+                    style='color:#f9fafb;text-decoration:underline;'
+                  >Privacy Policy</a>
+                  |
+                  <a
+                    href='#'
+                    style='color:#f9fafb;text-decoration:underline;'
+                  >Terms of Service</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
